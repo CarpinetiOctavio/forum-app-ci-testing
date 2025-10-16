@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { postService, deleteComment } from '../../services/postService';
 import { Comment } from '../../types';
 import './CommentList.css';
@@ -10,13 +10,19 @@ interface CommentListProps {
     onCommentDeleted?: (commentId: number) => void;
 }
 
-const CommentList: React.FC<CommentListProps> = ({ postId, currentUserId, refreshTrigger, onCommentDeleted }) => {
+const CommentList: React.FC<CommentListProps> = ({
+    postId,
+    currentUserId,
+    refreshTrigger,
+    onCommentDeleted
+}) => {
     const [comments, setComments] = useState<Comment[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
-    const loadComments = async () => {
+    // Memoizamos loadComments para evitar warning de ESLint
+    const loadComments = useCallback(async () => {
         try {
             setLoading(true);
             const data = await postService.getComments(postId);
@@ -27,22 +33,24 @@ const CommentList: React.FC<CommentListProps> = ({ postId, currentUserId, refres
         } finally {
             setLoading(false);
         }
-    };
+    }, [postId]);
 
     useEffect(() => {
         loadComments();
-    }, [postId, refreshTrigger]);
+    }, [loadComments, refreshTrigger]);
 
     const handleDelete = async (commentId: number) => {
         try {
             await deleteComment(postId, commentId, currentUserId);
-            // Actualizar la lista de comentarios en el frontend
-            setComments(comments.filter(c => c.id !== commentId));
+
+            // Actualizar lista de comentarios usando función de estado
+            setComments(prev => prev.filter(c => c.id !== commentId));
+
             if (onCommentDeleted) onCommentDeleted(commentId);
 
             // Mostrar mensaje de éxito
             setSuccessMessage('Comentario eliminado exitosamente');
-            setTimeout(() => setSuccessMessage(''), 3000); // se borra después de 3 segundos
+            setTimeout(() => setSuccessMessage(''), 3000);
 
         } catch (err: any) {
             console.error("Error deleting comment:", err.response?.data || err.message);
@@ -50,32 +58,21 @@ const CommentList: React.FC<CommentListProps> = ({ postId, currentUserId, refres
         }
     };
 
-    if (loading) {
-        return <div className="comments-loading">Cargando comentarios...</div>;
-    }
-
-    if (error) {
-        return <div className="comments-error">{error}</div>;
-    }
-
-    if (comments.length === 0) {
-        return <div className="no-comments">No hay comentarios todavía. ¡Sé el primero en comentar!</div>;
-    }
+    if (loading) return <div className="comments-loading">Cargando comentarios...</div>;
+    if (error) return <div className="comments-error">{error}</div>;
+    if (comments.length === 0) return <div className="no-comments">No hay comentarios todavía. ¡Sé el primero en comentar!</div>;
 
     return (
         <div className="comment-list">
             <h3>Comentarios ({comments.length})</h3>
 
-            {/* Mensaje de éxito al eliminar */}
             {successMessage && <div className="success-message">{successMessage}</div>}
-            
-            {comments.map((comment) => (
+
+            {comments.map(comment => (
                 <div key={comment.id} className="comment-card">
                     <div className="comment-header">
                         <span className="comment-author">@{comment.username}</span>
-                        <span className="comment-date">
-              {new Date(comment.created_at).toLocaleDateString()}
-            </span>
+                        <span className="comment-date">{new Date(comment.created_at).toLocaleDateString()}</span>
                         {comment.user_id === currentUserId && (
                             <button
                                 className="comment-delete-btn"
@@ -93,7 +90,3 @@ const CommentList: React.FC<CommentListProps> = ({ postId, currentUserId, refres
 };
 
 export default CommentList;
-
-
-
-
