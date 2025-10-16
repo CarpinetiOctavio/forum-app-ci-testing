@@ -1,7 +1,7 @@
 # TP06 - Pruebas Unitarias
 
 **Materia:** Ingeniería de Software 3  
-**Alumno:** [Tu Nombre]  
+**Alumno:** Octavio Carpineti - Kevin Massholder  
 **Año:** 2025
 
 Mini red social con suite completa de pruebas unitarias (42 tests), mocking de dependencias externas y CI/CD automático.
