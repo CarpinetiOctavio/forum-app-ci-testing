@@ -61,3 +61,9 @@ func (m *MockPostRepository) FindCommentsByPostID(postID int) ([]*models.Comment
 
 	return args.Get(0).([]*models.Comment), args.Error(1)
 }
+
+// DeleteComment simula eliminar un comentario
+func (m *MockPostRepository) DeleteComment(postID int, commentID int, userID int) error {
+	args := m.Called(postID, commentID, userID)
+	return args.Error(0)
+}

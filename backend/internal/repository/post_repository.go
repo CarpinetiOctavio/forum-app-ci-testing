@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 
 	"tp06-testing/internal/models"
 )
@@ -14,6 +15,7 @@ type PostRepository interface {
 	Delete(id int) error
 	CreateComment(comment *models.Comment) error
 	FindCommentsByPostID(postID int) ([]*models.Comment, error)
+	DeleteComment(postID int, commentID int, userID int) error
 }
 
 // SQLitePostRepository implementa PostRepository usando SQLite
@@ -171,4 +173,23 @@ func (r *SQLitePostRepository) FindCommentsByPostID(postID int) ([]*models.Comme
 	}
 
 	return comments, nil
+}
+
+func (r *SQLitePostRepository) DeleteComment(postID int, commentID int, userID int) error {
+	query := `
+		DELETE FROM comments
+		WHERE id = ? AND post_id = ? AND user_id = ?
+	`
+	result, err := r.db.Exec(query, commentID, postID, userID)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("no tienes permiso para eliminar este comentario o no existe")
+	}
+	return nil
 }

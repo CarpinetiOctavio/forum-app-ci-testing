@@ -28,6 +28,7 @@ func Setup(authHandler *handlers.AuthHandler, postHandler *handlers.PostHandler)
 	// Rutas de comentarios
 	router.HandleFunc("/api/posts/{id}/comments", postHandler.GetComments).Methods("GET", "OPTIONS")
 	router.HandleFunc("/api/posts/{id}/comments", postHandler.CreateComment).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/posts/{postId}/comments/{commentId}", postHandler.DeleteComment).Methods("DELETE", "OPTIONS")
 
 	return router
 }

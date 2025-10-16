@@ -233,3 +233,119 @@ func TestDeletePost_NoEsAutor(t *testing.T) {
 	mockRepo.AssertNotCalled(t, "Delete")
 	mockRepo.AssertExpectations(t)
 }
+
+// TestDeleteComment_Success prueba eliminación exitosa por el autor
+func TestDeleteComment_Success(t *testing.T) {
+	// ARRANGE
+	mockRepo := new(mocks.MockPostRepository)
+	mockUserRepo := new(mocks.MockUserRepository)
+	postService := services.NewPostService(mockRepo, mockUserRepo)
+
+	existingPost := &models.Post{
+		ID:       1,
+		Title:    "Test Post",
+		UserID:   1,
+		Username: "testuser",
+	}
+
+	existingUser := &models.User{
+		ID:       1,
+		Email:    "test@example.com",
+		Username: "testuser",
+	}
+
+	// Configurar mocks
+	mockRepo.On("FindByID", 1).Return(existingPost, nil)
+	mockUserRepo.On("FindByID", 1).Return(existingUser, nil)
+	mockRepo.On("DeleteComment", 1, 10, 1).Return(nil)
+
+	// ACT: El usuario 1 elimina su propio comentario
+	err := postService.DeleteComment(1, 10, 1)
+
+	// ASSERT
+	assert.NoError(t, err)
+	mockRepo.AssertExpectations(t)
+	mockUserRepo.AssertExpectations(t)
+}
+
+// TestDeleteComment_PostNoExiste prueba eliminar comentario en post inexistente
+func TestDeleteComment_PostNoExiste(t *testing.T) {
+	// ARRANGE
+	mockRepo := new(mocks.MockPostRepository)
+	mockUserRepo := new(mocks.MockUserRepository)
+	postService := services.NewPostService(mockRepo, mockUserRepo)
+
+	// Post no existe
+	mockRepo.On("FindByID", 999).Return(nil, nil)
+
+	// ACT
+	err := postService.DeleteComment(999, 10, 1)
+
+	// ASSERT
+	assert.Error(t, err)
+	assert.Equal(t, "post no encontrado", err.Error())
+
+	// NO debe intentar eliminar
+	mockRepo.AssertNotCalled(t, "DeleteComment")
+}
+
+// TestDeleteComment_UsuarioNoExiste prueba eliminar con usuario inexistente
+func TestDeleteComment_UsuarioNoExiste(t *testing.T) {
+	// ARRANGE
+	mockRepo := new(mocks.MockPostRepository)
+	mockUserRepo := new(mocks.MockUserRepository)
+	postService := services.NewPostService(mockRepo, mockUserRepo)
+
+	existingPost := &models.Post{
+		ID:       1,
+		Title:    "Test Post",
+		UserID:   1,
+		Username: "testuser",
+	}
+
+	mockRepo.On("FindByID", 1).Return(existingPost, nil)
+	mockUserRepo.On("FindByID", 999).Return(nil, nil)
+
+	// ACT
+	err := postService.DeleteComment(1, 10, 999)
+
+	// ASSERT
+	assert.Error(t, err)
+	assert.Equal(t, "usuario no encontrado", err.Error())
+	mockRepo.AssertNotCalled(t, "DeleteComment")
+}
+
+// TestDeleteComment_NoEsAutor prueba que solo el autor puede eliminar su comentario
+func TestDeleteComment_NoEsAutor(t *testing.T) {
+	// ARRANGE
+	mockRepo := new(mocks.MockPostRepository)
+	mockUserRepo := new(mocks.MockUserRepository)
+	postService := services.NewPostService(mockRepo, mockUserRepo)
+
+	existingPost := &models.Post{
+		ID:       1,
+		Title:    "Test Post",
+		UserID:   1,
+		Username: "testuser",
+	}
+
+	existingUser := &models.User{
+		ID:       2,
+		Email:    "other@example.com",
+		Username: "otheruser",
+	}
+
+	mockRepo.On("FindByID", 1).Return(existingPost, nil)
+	mockUserRepo.On("FindByID", 2).Return(existingUser, nil)
+
+	// Usuario 2 intenta eliminar comentario del usuario 1
+	mockRepo.On("DeleteComment", 1, 10, 2).Return(errors.New("no tienes permiso para eliminar este comentario o no existe"))
+
+	// ACT
+	err := postService.DeleteComment(1, 10, 2)
+
+	// ASSERT
+	assert.Error(t, err)
+	assert.Equal(t, "no tienes permiso para eliminar este comentario o no existe", err.Error())
+	mockRepo.AssertExpectations(t)
+}

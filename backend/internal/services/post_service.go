@@ -186,3 +186,26 @@ func (s *PostService) GetCommentsByPostID(postID int) ([]*models.Comment, error)
 
 	return comments, nil
 }
+
+func (s *PostService) DeleteComment(postID int, commentID int, userID int) error {
+	// Validación: Post debe existir
+	post, err := s.postRepo.FindByID(postID)
+	if err != nil {
+		return err
+	}
+	if post == nil {
+		return errors.New("post no encontrado")
+	}
+
+	// Validación: Usuario debe existir
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return errors.New("usuario no encontrado")
+	}
+
+	// Eliminar comentario (solo el autor puede)
+	return s.postRepo.DeleteComment(postID, commentID, userID)
+}

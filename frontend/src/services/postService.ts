@@ -55,3 +55,10 @@ export const postService = {
     return response.data;
   }
 };
+
+// Eliminar comentario
+export const deleteComment = async (postId: number, commentId: number, userId: number) => {
+    return axios.delete(`${API_URL}/${postId}/comments/${commentId}`, {
+        headers: { 'X-User-ID': userId.toString() }
+    });
+};

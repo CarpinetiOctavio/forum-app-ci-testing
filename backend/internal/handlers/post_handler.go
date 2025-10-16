@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
 	"tp06-testing/internal/models"
 	"tp06-testing/internal/services"
-	"github.com/gorilla/mux"
 )
 
 // PostHandler maneja las peticiones HTTP de posts
@@ -175,4 +175,38 @@ func (h *PostHandler) GetComments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, comments)
+}
+
+// DeleteComment handles DELETE /api/posts/{postId}/comments/{commentId}
+func (h *PostHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	postID, err := strconv.Atoi(vars["postId"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Post ID inválido")
+		return
+	}
+	commentID, err := strconv.Atoi(vars["commentId"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Comment ID inválido")
+		return
+	}
+
+	userIDStr := r.Header.Get("X-User-ID")
+	if userIDStr == "" {
+		respondWithError(w, http.StatusUnauthorized, "Usuario no autenticado")
+		return
+	}
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "User ID inválido")
+		return
+	}
+
+	err = h.postService.DeleteComment(postID, commentID, userID)
+	if err != nil {
+		respondWithError(w, http.StatusForbidden, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{"message": "Comentario eliminado"})
 }
