@@ -2,7 +2,7 @@
 
 ## 📋 Resumen Ejecutivo
 
-Se implementó una **suite completa de 34 pruebas unitarias** (19 backend + 15 frontend) para una aplicación de red social simple, utilizando **mocks para aislar dependencias externas** y **CI/CD automático con GitHub Actions**.
+Se implementó una **suite completa de 42 pruebas unitarias** (23 backend + 19 frontend) para una aplicación de red social simple, utilizando **mocks para aislar dependencias externas** y **CI/CD automático con GitHub Actions**.
 
 ---
 
@@ -83,28 +83,28 @@ await waitFor(() => expect(mockFn).toHaveBeenCalled());
 ```go
 // Problema SIN mock (malo)
 func TestRegister(t *testing.T) {
-    db := sql.Open("sqlite3", "database.db")  // ← Necesita BD real
-    repo := NewSQLiteUserRepository(db)
-    service := NewAuthService(repo)
-    user, _ := service.Register(...)
-    // Problemas:
-    // - Lento (I/O a disco)
-    // - Contamina datos de prueba
-    // - Si la BD cae, falla el test
-    // - No puedo simular errores de BD fácilmente
+db := sql.Open("sqlite3", "database.db")  // ← Necesita BD real
+repo := NewSQLiteUserRepository(db)
+service := NewAuthService(repo)
+user, _ := service.Register(...)
+// Problemas:
+// - Lento (I/O a disco)
+// - Contamina datos de prueba
+// - Si la BD cae, falla el test
+// - No puedo simular errores de BD fácilmente
 }
 
 // Solución CON mock (bien)
 func TestRegister_Success(t *testing.T) {
-    mockRepo := new(mocks.MockUserRepository)    // ← No toca BD
-    mockRepo.On("FindByEmail", "test@example.com").Return(nil, nil)
-    service := NewAuthService(mockRepo)
-    user, _ := service.Register(...)
-    // Ventajas:
-    // - Rápido (en memoria)
-    // - No modifica BD
-    // - Puedo reproducir cualquier escenario
-    // - Tests independientes
+mockRepo := new(mocks.MockUserRepository)    // ← No toca BD
+mockRepo.On("FindByEmail", "test@example.com").Return(nil, nil)
+service := NewAuthService(mockRepo)
+user, _ := service.Register(...)
+// Ventajas:
+// - Rápido (en memoria)
+// - No modifica BD
+// - Puedo reproducir cualquier escenario
+// - Tests independientes
 }
 ```
 
@@ -151,7 +151,7 @@ test('login', async () => {
 
 ## 4. Suite de Pruebas: Detalles Importantes
 
-### Backend Tests: 19 tests totales
+### Backend Tests: 23 tests totales
 
 #### AuthService (11 tests)
 
@@ -182,18 +182,42 @@ TestLogin_PasswordIncorrecta      // ✓ Credenciales inválidas
 - Validan todas las reglas de negocio
 - Permiten reproducir cualquier escenario
 
-#### PostService (8 tests)
+#### PostService (12 tests)
+
+**Validaciones y casos exitosos:**
+```go
+TestCreatePost_Success                 // ✓ Crear post funciona
+TestCreatePost_UserNotFound            // ✓ Usuario debe existir
+TestCreatePost_RepoError               // ✓ Manejo de errores de BD
+TestCreatePost_TitleVacio              // ✓ Título requerido
+TestCreatePost_ContentVacio            // ✓ Contenido requerido
+```
+
+**Tests de eliminación de posts:**
+```go
+TestDeletePost_Success                 // ✓ Autor elimina su post
+TestDeletePost_PostNoExiste            // ✓ Post no encontrado
+TestDeletePost_NoEsAutor               // ✓ Solo autor puede eliminar (CRÍTICO)
+```
+
+**Tests de eliminación de comentarios (agregados):**
+```go
+TestDeleteComment_Success              // ✓ Autor elimina su comentario
+TestDeleteComment_PostNoExiste         // ✓ Post no encontrado
+TestDeleteComment_UsuarioNoExiste      // ✓ Usuario no encontrado
+TestDeleteComment_NoEsAutor            // ✓ Solo autor puede eliminar (CRÍTICO)
+```
 
 **Test crítico: Regla de negocio**
 ```go
 TestDeletePost_NoEsAutor() {
-    // Un usuario intenta eliminar post de otro
-    existingPost := &Post{ UserID: 1 }
-    
-    err := postService.DeletePost(1, 2)  // usuario 2 intenta eliminar post del usuario 1
-    
-    assert.Error(t, err)
-    assert.Equal(t, "no tienes permiso", err.Error())
+// Un usuario intenta eliminar post de otro
+existingPost := &Post{ UserID: 1 }
+
+err := postService.DeletePost(1, 2)  // usuario 2 intenta eliminar post del usuario 1
+
+assert.Error(t, err)
+assert.Equal(t, "no tienes permiso", err.Error())
 }
 ```
 
@@ -202,7 +226,7 @@ TestDeletePost_NoEsAutor() {
 - Es una regla de negocio crítica
 - Impide que usuarios eliminen posts ajenos
 
-### Frontend Tests: 15 tests totales
+### Frontend Tests: 19 tests totales
 
 #### Login Component (5 tests)
 
@@ -235,6 +259,22 @@ test('muestra error cuando falla cargar posts')   // Error handling
 - El mock configura posts de diferentes usuarios
 - Simula la regla de negocio del backend
 
+#### CommentList Component (5 tests)
+
+```typescript
+test('renderiza la lista de comentarios correctamente')     // Renderizado básico
+test('muestra "No hay comentarios" cuando está vacía')      // Caso edge
+test('muestra botón eliminar solo para comentarios propios') // Permisos (CRÍTICO)
+test('elimina un comentario cuando se hace click')          // Acción de eliminar
+test('muestra error cuando falla cargar comentarios')       // Error handling
+```
+
+**Por qué es importante el test de permisos:**
+- Verifica que solo el autor puede ver el botón eliminar en sus comentarios
+- Refleja la misma regla de seguridad implementada en el backend
+- Valida consistencia entre frontend y backend
+- Previene que usuarios eliminen comentarios ajenos
+
 ---
 
 ## 5. Patrón AAA Implementado Consistentemente
@@ -251,23 +291,23 @@ ASSERT     → Verificar el resultado
 
 ```go
 func TestCreatePost_Success(t *testing.T) {
-    // ARRANGE
-    mockRepo := new(mocks.MockPostRepository)
-    mockUserRepo := new(mocks.MockUserRepository)
-    existingUser := &User{ ID: 1, Username: "testuser" }
-    mockUserRepo.On("FindByID", 1).Return(existingUser, nil)
-    mockRepo.On("Create", mock.AnythingOfType("*models.Post")).Return(nil)
-    
-    service := NewPostService(mockRepo, mockUserRepo)
-    req := &CreatePostRequest{ Title: "Test", Content: "Content" }
-    
-    // ACT
-    post, err := service.CreatePost(req, 1)
-    
-    // ASSERT
-    assert.NoError(t, err)
-    assert.Equal(t, "Test", post.Title)
-    mockRepo.AssertExpectations(t)
+// ARRANGE
+mockRepo := new(mocks.MockPostRepository)
+mockUserRepo := new(mocks.MockUserRepository)
+existingUser := &User{ ID: 1, Username: "testuser" }
+mockUserRepo.On("FindByID", 1).Return(existingUser, nil)
+mockRepo.On("Create", mock.AnythingOfType("*models.Post")).Return(nil)
+
+service := NewPostService(mockRepo, mockUserRepo)
+req := &CreatePostRequest{ Title: "Test", Content: "Content" }
+
+// ACT
+post, err := service.CreatePost(req, 1)
+
+// ASSERT
+assert.NoError(t, err)
+assert.Equal(t, "Test", post.Title)
+mockRepo.AssertExpectations(t)
 }
 ```
 
@@ -280,12 +320,12 @@ test('login exitoso', async () => {
     mockedAxios.post.mockResolvedValueOnce({ data: mockUser });
     const mockFn = jest.fn();
     render(<Login onLoginSuccess={mockFn} />);
-    
+
     // ACT
-    fireEvent.change(screen.getByLabelText(/email/i), 
+    fireEvent.change(screen.getByLabelText(/email/i),
         { target: { value: 'test@example.com' } });
     fireEvent.click(screen.getByRole('button', { name: /iniciar/i }));
-    
+
     // ASSERT
     await waitFor(() => {
         expect(mockFn).toHaveBeenCalledWith(mockUser);
@@ -384,24 +424,24 @@ for i in {1..10}; do go test ./tests/services/... -v; done
 
 ```go
 func TestDeletePost_NoEsAutor(t *testing.T) {
-    mockRepo := new(mocks.MockPostRepository)
-    mockUserRepo := new(mocks.MockUserRepository)
-    
-    // Usuario 1 creó el post
-    existingPost := &Post{ ID: 1, UserID: 1 }
-    mockRepo.On("FindByID", 1).Return(existingPost, nil)
-    
-    service := NewPostService(mockRepo, mockUserRepo)
-    
-    // Usuario 2 intenta eliminarlo
-    err := service.DeletePost(1, 2)
-    
-    // Debe fallar
-    assert.Error(t, err)
-    assert.Equal(t, "no tienes permiso para eliminar este post", err.Error())
-    
-    // Verify que NO llamó a Delete
-    mockRepo.AssertNotCalled(t, "Delete")
+mockRepo := new(mocks.MockPostRepository)
+mockUserRepo := new(mocks.MockUserRepository)
+
+// Usuario 1 creó el post
+existingPost := &Post{ ID: 1, UserID: 1 }
+mockRepo.On("FindByID", 1).Return(existingPost, nil)
+
+service := NewPostService(mockRepo, mockUserRepo)
+
+// Usuario 2 intenta eliminarlo
+err := service.DeletePost(1, 2)
+
+// Debe fallar
+assert.Error(t, err)
+assert.Equal(t, "no tienes permiso para eliminar este post", err.Error())
+
+// Verify que NO llamó a Delete
+mockRepo.AssertNotCalled(t, "Delete")
 }
 ```
 
@@ -424,13 +464,13 @@ test('muestra botón eliminar solo para posts propios', async () => {
         { id: 2, user_id: 2, ... }      // Post de otro
     ];
     mockedAxios.get.mockResolvedValueOnce({ data: mockPosts });
-    
+
     render(<PostList currentUserId={1} />);
-    
+
     await waitFor(() => {
         expect(screen.getByText('Mi post')).toBeInTheDocument();
     });
-    
+
     // Solo 1 botón eliminar (para tu post)
     const deleteButtons = screen.getAllByText('Eliminar');
     expect(deleteButtons).toHaveLength(1);
@@ -520,23 +560,29 @@ cd backend && go test ./... && cd ../frontend && npm test
 === RUN   TestRegister_EmailVacio
 --- PASS: TestRegister_EmailVacio (0.00s)
 ...
+=== RUN   TestDeleteComment_Success
+--- PASS: TestDeleteComment_Success (0.00s)
+=== RUN   TestDeleteComment_NoEsAutor
+--- PASS: TestDeleteComment_NoEsAutor (0.00s)
+...
 PASS
 ok      tp06-testing/tests/services     0.582s
 ```
 
-**Total Backend:** 19/19 tests ✅
+**Total Backend:** 23/23 tests ✅
 
 ### Frontend Tests (npm test)
 ```
 PASS  src/components/Login/Login.test.tsx
 PASS  src/components/PostList/PostList.test.tsx
+PASS  src/components/CommentList/CommentList.test.tsx
 PASS  src/services/authService.test.ts
 
-Tests:       15 passed, 15 total
+Tests:       19 passed, 19 total
 Coverage:    Promedio >80%
 ```
 
-**Total Frontend:** 15/15 tests ✅
+**Total Frontend:** 19/19 tests ✅
 
 ### CI/CD (GitHub Actions)
 ```
@@ -586,4 +632,4 @@ Este trabajo demuestra:
 5. **DevOps**: CI/CD automático funcionando
 6. **Universalidad**: Los conceptos aplican a cualquier stack
 
-**Total: 34 tests automatizados, reproducibles e independientes.**
+**Total: 42 tests automatizados, reproducibles e independientes.**
