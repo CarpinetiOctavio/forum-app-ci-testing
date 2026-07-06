@@ -4,13 +4,13 @@ import { Post, CreatePostRequest, Comment, CreateCommentRequest } from '../types
 const API_URL = 'http://localhost:8080/api/posts';
 
 export const postService = {
-  // Obtener todos los posts
+  // Get all posts
   async getAllPosts(): Promise<Post[]> {
     const response = await axios.get<Post[]>(API_URL);
     return response.data;
   },
 
-  // Crear un nuevo post
+  // Create a new post
   async createPost(data: CreatePostRequest, userId: number): Promise<Post> {
     const response = await axios.post<Post>(API_URL, data, {
       headers: {
@@ -20,13 +20,13 @@ export const postService = {
     return response.data;
   },
 
-  // Obtener un post por ID
+  // Get a post by ID
   async getPostById(id: number): Promise<Post> {
     const response = await axios.get<Post>(`${API_URL}/${id}`);
     return response.data;
   },
 
-  // Eliminar un post
+  // Delete a post
   async deletePost(id: number, userId: number): Promise<void> {
     await axios.delete(`${API_URL}/${id}`, {
       headers: {
@@ -35,13 +35,13 @@ export const postService = {
     });
   },
 
-  // Obtener comentarios de un post
+  // Get comments for a post
   async getComments(postId: number): Promise<Comment[]> {
     const response = await axios.get<Comment[]>(`${API_URL}/${postId}/comments`);
     return response.data;
   },
 
-  // Crear comentario
+  // Create a comment
   async createComment(postId: number, data: CreateCommentRequest, userId: number): Promise<Comment> {
     const response = await axios.post<Comment>(
       `${API_URL}/${postId}/comments`,
@@ -56,7 +56,7 @@ export const postService = {
   }
 };
 
-// Eliminar comentario
+// Delete a comment
 export const deleteComment = async (postId: number, commentId: number, userId: number) => {
     return axios.delete(`${API_URL}/${postId}/comments/${commentId}`, {
         headers: { 'X-User-ID': userId.toString() }

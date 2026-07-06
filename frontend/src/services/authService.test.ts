@@ -10,7 +10,7 @@ describe('authService', () => {
   });
 
   describe('login', () => {
-    test('llama a la API correctamente con credentials', async () => {
+    test('calls the API with the correct login credentials', async () => {
       const mockUser = {
         id: 1,
         email: 'test@example.com',
@@ -35,8 +35,8 @@ describe('authService', () => {
       expect(result).toEqual(mockUser);
     });
 
-    test('rechaza cuando las credenciales son inválidas', async () => {
-      const error = new Error('Credenciales inválidas');
+    test('rejects when the credentials are invalid', async () => {
+      const error = new Error('Invalid credentials');
       mockedAxios.post.mockRejectedValueOnce(error);
 
       await expect(
@@ -49,7 +49,7 @@ describe('authService', () => {
   });
 
   describe('register', () => {
-    test('llama a la API correctamente con datos de registro', async () => {
+    test('calls the API with the correct registration data', async () => {
       const mockUser = {
         id: 1,
         email: 'newuser@example.com',
@@ -76,8 +76,8 @@ describe('authService', () => {
       expect(result).toEqual(mockUser);
     });
 
-    test('rechaza cuando el email ya existe', async () => {
-      const error = new Error('el email ya está registrado');
+    test('rejects when the email is already registered', async () => {
+      const error = new Error('Email is already registered');
       mockedAxios.post.mockRejectedValueOnce(error);
 
       await expect(
@@ -89,8 +89,8 @@ describe('authService', () => {
       ).rejects.toEqual(error);
     });
 
-    test('rechaza cuando la validación falla', async () => {
-      const error = new Error('la contraseña debe tener al menos 6 caracteres');
+    test('rejects when a validation rule fails', async () => {
+      const error = new Error('Password must be at least 6 characters');
       mockedAxios.post.mockRejectedValueOnce(error);
 
       await expect(

@@ -3,28 +3,28 @@ package repository
 import (
 	"database/sql"
 
-	"tp06-testing/internal/models"
+	"forum-app-ci-testing/internal/models"
 )
 
-// UserRepository define las operaciones sobre usuarios
-// INTERFACE: permite crear mocks fácilmente para testing
+// UserRepository defines the operations on users
+// INTERFACE: allows creating mocks easily for testing
 type UserRepository interface {
 	Create(user *models.User) error
 	FindByEmail(email string) (*models.User, error)
 	FindByID(id int) (*models.User, error)
 }
 
-// SQLiteUserRepository implementa UserRepository usando SQLite
+// SQLiteUserRepository implements UserRepository using SQLite
 type SQLiteUserRepository struct {
 	db *sql.DB
 }
 
-// NewSQLiteUserRepository crea una nueva instancia
+// NewSQLiteUserRepository creates a new instance
 func NewSQLiteUserRepository(db *sql.DB) *SQLiteUserRepository {
 	return &SQLiteUserRepository{db: db}
 }
 
-// Create inserta un nuevo usuario en la base de datos
+// Create inserts a new user into the database
 func (r *SQLiteUserRepository) Create(user *models.User) error {
 	query := `
 		INSERT INTO users (email, password, username, created_at)
@@ -44,7 +44,7 @@ func (r *SQLiteUserRepository) Create(user *models.User) error {
 	return nil
 }
 
-// FindByEmail busca un usuario por email
+// FindByEmail looks up a user by email
 func (r *SQLiteUserRepository) FindByEmail(email string) (*models.User, error) {
 	query := `SELECT id, email, password, username, created_at FROM users WHERE email = ?`
 
@@ -58,7 +58,7 @@ func (r *SQLiteUserRepository) FindByEmail(email string) (*models.User, error) {
 	)
 
 	if err == sql.ErrNoRows {
-		return nil, nil // Usuario no encontrado (no es error)
+		return nil, nil // User not found (not an error)
 	}
 	if err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func (r *SQLiteUserRepository) FindByEmail(email string) (*models.User, error) {
 	return user, nil
 }
 
-// FindByID busca un usuario por ID
+// FindByID looks up a user by ID
 func (r *SQLiteUserRepository) FindByID(id int) (*models.User, error) {
 	query := `SELECT id, email, password, username, created_at FROM users WHERE id = ?`
 

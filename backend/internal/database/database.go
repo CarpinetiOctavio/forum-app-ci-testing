@@ -7,32 +7,32 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// InitDB inicializa la base de datos SQLite
+// InitDB initializes the SQLite database
 func InitDB(filepath string) (*sql.DB, error) {
-	// Abrir conexión a SQLite
+	// Open connection to SQLite
 	db, err := sql.Open("sqlite3", filepath)
 	if err != nil {
 		return nil, err
 	}
 
-	// Verificar que la conexión funcione
+	// Verify the connection works
 	if err = db.Ping(); err != nil {
 		return nil, err
 	}
 
-	// Crear las tablas
+	// Create the tables
 	if err = createTables(db); err != nil {
 		return nil, err
 	}
 
-	log.Println("Base de datos inicializada correctamente")
+	log.Println("Database initialized successfully")
 	return db, nil
 }
 
-// createTables crea el schema de la base de datos
+// createTables creates the database schema
 func createTables(db *sql.DB) error {
 	schema := `
-	-- Tabla de usuarios
+	-- Users table
 	CREATE TABLE IF NOT EXISTS users (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		email TEXT UNIQUE NOT NULL,
@@ -41,7 +41,7 @@ func createTables(db *sql.DB) error {
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
 
-	-- Tabla de posts
+	-- Posts table
 	CREATE TABLE IF NOT EXISTS posts (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		title TEXT NOT NULL,
@@ -51,7 +51,7 @@ func createTables(db *sql.DB) error {
 		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 	);
 
-	-- Tabla de comentarios
+	-- Comments table
 	CREATE TABLE IF NOT EXISTS comments (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		post_id INTEGER NOT NULL,
@@ -62,7 +62,7 @@ func createTables(db *sql.DB) error {
 		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 	);
 
-	-- Índices para mejorar rendimiento
+	-- Indexes to improve performance
 	CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id);
 	CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id);
 	CREATE INDEX IF NOT EXISTS idx_comments_user_id ON comments(user_id);

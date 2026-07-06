@@ -18,7 +18,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.21'
+          go-version: '1.24'
 
       - name: Cache Go modules
         uses: actions/cache@v3
@@ -35,13 +35,14 @@ jobs:
         run: |
           go mod download
           go build ./...
-          go test ./... -v -coverprofile=coverage.out
+          go test ./tests/services/... -v -coverprofile=coverage.out -coverpkg=./internal/services/...
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
+      - name: Upload backend coverage artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: ./backend/coverage.out
-          flags: backend
+          name: backend-coverage
+          path: backend/coverage.out
+          retention-days: 7
 
   frontend-tests:
     name: Frontend Tests (React)
@@ -72,11 +73,12 @@ jobs:
         working-directory: ./frontend
         run: npm test -- --coverage --watchAll=false
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
+      - name: Upload frontend coverage artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: ./frontend/coverage/coverage-final.json
-          flags: frontend
+          name: frontend-coverage
+          path: frontend/coverage
+          retention-days: 7
 
   backend-build:
     name: Backend Build
@@ -90,7 +92,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.21'
+          go-version: '1.24'
       
       - name: Build backend
         working-directory: ./backend

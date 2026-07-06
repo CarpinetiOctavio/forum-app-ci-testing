@@ -4,58 +4,58 @@ import (
 	"errors"
 	"strings"
 
-	"tp06-testing/internal/models"
-	"tp06-testing/internal/repository"
+	"forum-app-ci-testing/internal/models"
+	"forum-app-ci-testing/internal/repository"
 )
 
-// AuthService maneja la lógica de autenticación
+// AuthService handles authentication logic
 type AuthService struct {
 	userRepo repository.UserRepository
 }
 
-// NewAuthService crea una nueva instancia
+// NewAuthService creates a new instance
 func NewAuthService(userRepo repository.UserRepository) *AuthService {
 	return &AuthService{
 		userRepo: userRepo,
 	}
 }
 
-// Register registra un nuevo usuario
-// Aquí validamos las reglas de negocio
+// Register registers a new user
+// Business rules are validated here
 func (s *AuthService) Register(req *models.RegisterRequest) (*models.User, error) {
-	// Validación 1: Email no puede estar vacío
+	// Validation 1: Email cannot be empty
 	if strings.TrimSpace(req.Email) == "" {
-		return nil, errors.New("el email es requerido")
+		return nil, errors.New("email is required")
 	}
 
-	// Validación 2: Email debe contener @
+	// Validation 2: Email must contain @
 	if !strings.Contains(req.Email, "@") {
-		return nil, errors.New("el email debe ser válido")
+		return nil, errors.New("email must be valid")
 	}
 
-	// Validación 3: Password debe tener al menos 6 caracteres
+	// Validation 3: Password must be at least 6 characters
 	if len(req.Password) < 6 {
-		return nil, errors.New("la contraseña debe tener al menos 6 caracteres")
+		return nil, errors.New("password must be at least 6 characters")
 	}
 
-	// Validación 4: Username no puede estar vacío
+	// Validation 4: Username cannot be empty
 	if strings.TrimSpace(req.Username) == "" {
-		return nil, errors.New("el nombre de usuario es requerido")
+		return nil, errors.New("username is required")
 	}
 
-	// Validación 5: Verificar que el email no esté registrado
+	// Validation 5: Verify the email is not already registered
 	existingUser, err := s.userRepo.FindByEmail(req.Email)
 	if err != nil {
 		return nil, err
 	}
 	if existingUser != nil {
-		return nil, errors.New("el email ya está registrado")
+		return nil, errors.New("email is already registered")
 	}
 
-	// Crear el usuario
+	// Create the user
 	user := &models.User{
 		Email:    strings.ToLower(strings.TrimSpace(req.Email)),
-		Password: req.Password, // En producción: hashear con bcrypt
+		Password: req.Password, // In production: hash with bcrypt
 		Username: strings.TrimSpace(req.Username),
 	}
 
@@ -67,33 +67,33 @@ func (s *AuthService) Register(req *models.RegisterRequest) (*models.User, error
 	return user, nil
 }
 
-// Login autentica un usuario
+// Login authenticates a user
 func (s *AuthService) Login(creds *models.Credentials) (*models.User, error) {
-	// Validación 1: Email no puede estar vacío
+	// Validation 1: Email cannot be empty
 	if strings.TrimSpace(creds.Email) == "" {
-		return nil, errors.New("el email es requerido")
+		return nil, errors.New("email is required")
 	}
 
-	// Validación 2: Password no puede estar vacío
+	// Validation 2: Password cannot be empty
 	if creds.Password == "" {
-		return nil, errors.New("la contraseña es requerida")
+		return nil, errors.New("password is required")
 	}
 
-	// Buscar usuario por email
+	// Look up the user by email
 	user, err := s.userRepo.FindByEmail(strings.ToLower(strings.TrimSpace(creds.Email)))
 	if err != nil {
 		return nil, err
 	}
 
-	// Validación 3: Usuario debe existir
+	// Validation 3: User must exist
 	if user == nil {
-		return nil, errors.New("credenciales inválidas")
+		return nil, errors.New("invalid credentials")
 	}
 
-	// Validación 4: Password debe coincidir
-	// En producción: usar bcrypt.CompareHashAndPassword
+	// Validation 4: Password must match
+	// In production: use bcrypt.CompareHashAndPassword
 	if user.Password != creds.Password {
-		return nil, errors.New("credenciales inválidas")
+		return nil, errors.New("invalid credentials")
 	}
 
 	return user, nil

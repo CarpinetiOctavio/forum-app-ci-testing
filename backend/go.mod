@@ -1,4 +1,4 @@
-module tp06-testing
+module forum-app-ci-testing
 
 go 1.24.1
 

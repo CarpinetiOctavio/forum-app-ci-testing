@@ -20,15 +20,15 @@ export const CreatePost: React.FC<CreatePostProps> = ({ userId, onPostCreated })
 
     try {
       await postService.createPost({ title, content }, userId);
-      
-      // Limpiar formulario
+
+      // Clear form
       setTitle('');
       setContent('');
-      
-      // Notificar que se creó el post
+
+      // Notify that post was created
       onPostCreated();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Error al crear post');
+      setError(err.response?.data?.error || 'Failed to create post');
     } finally {
       setLoading(false);
     }
@@ -36,26 +36,26 @@ export const CreatePost: React.FC<CreatePostProps> = ({ userId, onPostCreated })
 
   return (
     <div className="create-post-container">
-      <h2>Crear Nuevo Post</h2>
+      <h2>Create New Post</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>Título:</label>
+          <label>Title:</label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Escribe un título..."
+            placeholder="Write a title..."
             required
             disabled={loading}
           />
         </div>
 
         <div className="form-group">
-          <label>Contenido:</label>
+          <label>Content:</label>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="¿Qué quieres compartir?"
+            placeholder="What do you want to share?"
             rows={5}
             required
             disabled={loading}
@@ -65,7 +65,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ userId, onPostCreated })
         {error && <div className="error-message">{error}</div>}
 
         <button type="submit" disabled={loading}>
-          {loading ? 'Publicando...' : 'Publicar Post'}
+          {loading ? 'Publishing...' : 'Publish Post'}
         </button>
       </form>
     </div>

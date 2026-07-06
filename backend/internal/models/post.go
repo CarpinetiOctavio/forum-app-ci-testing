@@ -2,23 +2,23 @@ package models
 
 import "time"
 
-// Post representa una publicación
+// Post represents a forum post
 type Post struct {
 	ID        int       `json:"id"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
 	UserID    int       `json:"user_id"`
-	Username  string    `json:"username"` // Para mostrar quién publicó
+	Username  string    `json:"username"` // To display who authored it
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// CreatePostRequest se usa para crear un post
+// CreatePostRequest is used to create a post
 type CreatePostRequest struct {
 	Title   string `json:"title"`
 	Content string `json:"content"`
 }
 
-// Comment representa un comentario en un post
+// Comment represents a comment on a post
 type Comment struct {
 	ID        int       `json:"id"`
 	PostID    int       `json:"post_id"`
@@ -28,7 +28,7 @@ type Comment struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// CreateCommentRequest se usa para crear un comentario
+// CreateCommentRequest is used to create a comment
 type CreateCommentRequest struct {
 	Content string `json:"content"`
 }
