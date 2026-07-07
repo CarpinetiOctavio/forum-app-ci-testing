@@ -119,6 +119,13 @@ the fact. Direct push to either branch is blocked by branch protection rules.
 See [ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md) for why this model
 replaced the original push-to-main trigger.
 
+![Pipeline triggered by push to feature branch](docs/screenshots/00-pipeline-summary-feature-push.png)
+
+*Pipeline triggered by a push to `feature/portfolio-setup` — early
+detection during active development. The same five jobs run here as
+in the PR gate, but as diagnostic feedback on the feature branch,
+not as a merge blocker.*
+
 ![Pipeline passing](docs/screenshots/01-pipeline-passing-main.png)
 
 *All five jobs green on the PR staging→main — evidence that the pipeline runs
@@ -129,15 +136,15 @@ as a preventive gate, not post-hoc verification.*
 *Merging blocked on staging until required checks pass — the gate enforced
 before code reaches any shared branch.*
 
-![Branch protection gate on main](docs/screenshots/03-branch-protection-gate-main.png)
-
-*Same gate on main — nothing reaches the stable branch without passing the
-full pipeline.*
-
 ![Branch protection blocked on staging](docs/screenshots/04-branch-protection-blocked-staging.png)
 
 *Terminal output showing a direct push to staging rejected by GitHub —
 evidence the policy is enforced at the protocol level, not just in the UI.*
+
+![Branch protection gate on main](docs/screenshots/03-branch-protection-gate-main.png)
+
+*Same gate on main — nothing reaches the stable branch without passing the
+full pipeline.*
 
 ![Branch protection blocked on main](docs/screenshots/05-branch-protection-blocked-main.png)
 
