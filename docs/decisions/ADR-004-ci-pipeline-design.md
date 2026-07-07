@@ -192,3 +192,13 @@ Adopt a three-branch model: `feature/* → staging (PR) → main (PR)`.
   require the pipeline as a passing status check), which is **now
   configured on GitHub for `main`** and is out of scope for what a workflow
   file or a local git command can do.
+- **PR #1 (`feature/portfolio-setup` → `staging`) did not trigger the
+  pipeline as a gate.** GitHub Actions evaluates a workflow using the
+  version of it that exists on the PR's base branch — at the time this PR
+  was opened, `staging` still carried the old workflow (pre-adoption of this
+  model), which had no `pull_request` trigger for `staging` at all. This is
+  a known bootstrap problem with any branching-model migration: the first
+  PR under a new model is always evaluated against the workflow that
+  predates it, not the one it's introducing. Once that PR merged, `staging`
+  carried the updated workflow, and the following PR (`staging` → `main`)
+  ran correctly as a preventive gate.
