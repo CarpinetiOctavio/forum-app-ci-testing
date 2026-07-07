@@ -4,63 +4,63 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"tp06-testing/internal/models"
-	"tp06-testing/internal/services"
+	"forum-app-ci-testing/internal/models"
+	"forum-app-ci-testing/internal/services"
 )
 
-// AuthHandler maneja las peticiones HTTP de autenticación
+// AuthHandler handles authentication HTTP requests
 type AuthHandler struct {
 	authService *services.AuthService
 }
 
-// NewAuthHandler crea una nueva instancia
+// NewAuthHandler creates a new instance
 func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
 	}
 }
 
-// Register maneja POST /api/auth/register
+// Register handles POST /api/auth/register
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
-	// Decodificar el body JSON
+	// Decode the JSON body
 	var req models.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondWithError(w, http.StatusBadRequest, "JSON inválido")
+		respondWithError(w, http.StatusBadRequest, "invalid JSON")
 		return
 	}
 
-	// Llamar al servicio
+	// Call the service
 	user, err := h.authService.Register(&req)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	// Responder con el usuario creado
+	// Respond with the created user
 	respondWithJSON(w, http.StatusCreated, user)
 }
 
-// Login maneja POST /api/auth/login
+// Login handles POST /api/auth/login
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	// Decodificar el body JSON
+	// Decode the JSON body
 	var creds models.Credentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-		respondWithError(w, http.StatusBadRequest, "JSON inválido")
+		respondWithError(w, http.StatusBadRequest, "invalid JSON")
 		return
 	}
 
-	// Llamar al servicio
+	// Call the service
 	user, err := h.authService.Login(&creds)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	// Responder con el usuario autenticado
+	// Respond with the authenticated user
 	respondWithJSON(w, http.StatusOK, user)
 }
 
-// Funciones auxiliares para responder JSON
+// Helper functions to respond with JSON
 
 func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	response, _ := json.Marshal(payload)

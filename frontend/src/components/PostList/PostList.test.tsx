@@ -29,34 +29,34 @@ describe('PostList Component', () => {
     jest.clearAllMocks();
   });
 
-  test('renderiza la lista de posts correctamente', async () => {
+  test('renders the post list correctly', async () => {
     mockedAxios.get.mockResolvedValueOnce({ data: mockPosts });
 
     render(<PostList currentUserId={1} />);
 
-    // Esperar a que cargue
+    // Wait for posts to load
     await waitFor(() => {
       expect(screen.getByText('Mi primer post')).toBeInTheDocument();
       expect(screen.getByText('Post de otro usuario')).toBeInTheDocument();
     });
 
-    // Verificar que se muestre el contenido
+    // Verify content is displayed
     expect(screen.getByText('Este es el contenido del primer post')).toBeInTheDocument();
-    expect(screen.getByText(/por @testuser/)).toBeInTheDocument();
-    expect(screen.getByText(/por @otheruser/)).toBeInTheDocument();
+    expect(screen.getByText(/by @testuser/)).toBeInTheDocument();
+    expect(screen.getByText(/by @otheruser/)).toBeInTheDocument();
   });
 
-  test('muestra "No hay posts" cuando la lista está vacía', async () => {
+  test('shows an empty-state message when there are no posts', async () => {
     mockedAxios.get.mockResolvedValueOnce({ data: [] });
 
     render(<PostList currentUserId={1} />);
 
     await waitFor(() => {
-      expect(screen.getByText(/no hay posts/i)).toBeInTheDocument();
+      expect(screen.getByText(/no posts yet/i)).toBeInTheDocument();
     });
   });
 
-  test('muestra botón eliminar solo para posts propios', async () => {
+  test("shows the delete button only for the current user's own posts", async () => {
     mockedAxios.get.mockResolvedValueOnce({ data: mockPosts });
 
     render(<PostList currentUserId={1} />);
@@ -65,19 +65,19 @@ describe('PostList Component', () => {
       expect(screen.getByText('Mi primer post')).toBeInTheDocument();
     });
 
-    // Debe haber un botón eliminar (para el post del usuario 1)
-    const deleteButtons = screen.getAllByText('Eliminar');
+    // There should be one delete button (for user 1's post)
+    const deleteButtons = screen.getAllByText('Delete');
     expect(deleteButtons).toHaveLength(1);
 
-    // El post del usuario 2 no debe tener botón eliminar
+    // User 2's post should not have a delete button
   });
 
-  test('elimina un post cuando se hace click en eliminar', async () => {
+  test('deletes a post when the delete button is clicked', async () => {
     mockedAxios.get.mockResolvedValueOnce({ data: mockPosts });
     mockedAxios.delete.mockResolvedValueOnce({ data: {} });
-    mockedAxios.get.mockResolvedValueOnce({ data: [] }); // Segunda llamada después de eliminar
+    mockedAxios.get.mockResolvedValueOnce({ data: [] }); // Second call after deletion
 
-    window.confirm = jest.fn(() => true); // Mock de confirm
+    window.confirm = jest.fn(() => true); // Mock confirm dialog
 
     render(<PostList currentUserId={1} />);
 
@@ -85,11 +85,11 @@ describe('PostList Component', () => {
       expect(screen.getByText('Mi primer post')).toBeInTheDocument();
     });
 
-    // Click en eliminar
-    const deleteButton = screen.getByText('Eliminar');
+    // Click delete
+    const deleteButton = screen.getByText('Delete');
     fireEvent.click(deleteButton);
 
-    // Verificar que se llamó a delete con los parámetros correctos
+    // Verify delete was called with the correct parameters
     await waitFor(() => {
       expect(mockedAxios.delete).toHaveBeenCalledWith(
         'http://localhost:8080/api/posts/1',
@@ -102,19 +102,32 @@ describe('PostList Component', () => {
     });
   });
 
-  test('muestra error cuando falla cargar posts', async () => {
-    mockedAxios.get.mockRejectedValueOnce({
-      response: {
-        data: {
-          error: 'Error en el servidor'
-        }
-      }
-    });
+  test('does not call deletePost when the user cancels the confirmation dialog', async () => {
+    mockedAxios.get.mockResolvedValueOnce({ data: mockPosts });
+    window.confirm = jest.fn(() => false);
 
     render(<PostList currentUserId={1} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Error al cargar posts')).toBeInTheDocument();
+      expect(screen.getByText('Mi primer post')).toBeInTheDocument();
+    });
+
+    const deleteButton = screen.getByText('Delete');
+    fireEvent.click(deleteButton);
+
+    expect(mockedAxios.delete).not.toHaveBeenCalled();
+  });
+
+  test('shows an error message when loading posts fails', async () => {
+    // PostList.tsx ignores the backend's error message entirely and always
+    // shows its own fixed string, so the mock only needs to simulate a
+    // failed request — the rejection's content is never read.
+    mockedAxios.get.mockRejectedValueOnce(new Error('Request failed with status code 500'));
+
+    render(<PostList currentUserId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to load posts')).toBeInTheDocument();
     });
   });
 });

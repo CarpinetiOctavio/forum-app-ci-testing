@@ -31,7 +31,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         onLoginSuccess(user);
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Error en la autenticación');
+      setError(err.response?.data?.error || 'Authentication error');
     } finally {
       setLoading(false);
     }
@@ -40,7 +40,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   return (
     <div className="login-container">
       <div className="login-box">
-        <h2>{isLogin ? 'Iniciar Sesión' : 'Registrarse'}</h2>
+        <h2>{isLogin ? 'Sign In' : 'Sign Up'}</h2>
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -84,13 +84,13 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           {error && <div className="error-message">{error}</div>}
 
           <button type="submit" disabled={loading}>
-            {loading ? 'Procesando...' : (isLogin ? 'Iniciar Sesión' : 'Registrarse')}
+            {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Sign Up')}
           </button>
         </form>
 
         <div className="toggle-mode">
           <button type="button" onClick={() => setIsLogin(!isLogin)}>
-            {isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
+            {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
           </button>
         </div>
       </div>

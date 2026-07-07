@@ -21,7 +21,7 @@ export const PostList: React.FC<PostListProps> = ({ currentUserId, onRefresh, on
             setPosts(data);
             setError('');
         } catch (err: any) {
-            setError('Error al cargar posts');
+            setError('Failed to load posts');
         } finally {
             setLoading(false);
         }
@@ -32,7 +32,7 @@ export const PostList: React.FC<PostListProps> = ({ currentUserId, onRefresh, on
     }, [onRefresh]);
 
     const handleDelete = async (postId: number) => {
-        if (!window.confirm('¿Estás seguro de eliminar este post?')) {
+        if (!window.confirm('Are you sure you want to delete this post?')) {
             return;
         }
 
@@ -40,12 +40,12 @@ export const PostList: React.FC<PostListProps> = ({ currentUserId, onRefresh, on
             await postService.deletePost(postId, currentUserId);
             loadPosts();
         } catch (err: any) {
-            alert(err.response?.data?.error || 'Error al eliminar post');
+            alert(err.response?.data?.error || 'Failed to delete post');
         }
     };
 
     if (loading) {
-        return <div className="loading">Cargando posts...</div>;
+        return <div className="loading">Loading posts...</div>;
     }
 
     if (error) {
@@ -53,7 +53,7 @@ export const PostList: React.FC<PostListProps> = ({ currentUserId, onRefresh, on
     }
 
     if (posts.length === 0) {
-        return <div className="no-posts">No hay posts todavía. ¡Crea el primero!</div>;
+        return <div className="no-posts">No posts yet. Be the first to create one!</div>;
     }
 
     return (
@@ -68,7 +68,7 @@ export const PostList: React.FC<PostListProps> = ({ currentUserId, onRefresh, on
                 >
                     <div className="post-header">
                         <h3>{post.title}</h3>
-                        <span className="post-author">por @{post.username}</span>
+                        <span className="post-author">by @{post.username}</span>
                     </div>
                     <p className="post-content">{post.content}</p>
                     <div className="post-footer">
@@ -83,7 +83,7 @@ export const PostList: React.FC<PostListProps> = ({ currentUserId, onRefresh, on
                                     handleDelete(post.id);
                                 }}
                             >
-                                Eliminar
+                                Delete
                             </button>
                         )}
                     </div>

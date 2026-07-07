@@ -21,7 +21,7 @@ const CommentList: React.FC<CommentListProps> = ({
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
-    // Memoizamos loadComments para evitar warning de ESLint
+    // Memoize loadComments to avoid ESLint warning
     const loadComments = useCallback(async () => {
         try {
             setLoading(true);
@@ -29,7 +29,7 @@ const CommentList: React.FC<CommentListProps> = ({
             setComments(data);
             setError('');
         } catch (err: any) {
-            setError('Error al cargar comentarios');
+            setError('Failed to load comments');
         } finally {
             setLoading(false);
         }
@@ -43,28 +43,28 @@ const CommentList: React.FC<CommentListProps> = ({
         try {
             await deleteComment(postId, commentId, currentUserId);
 
-            // Actualizar lista de comentarios usando función de estado
+            // Update comment list using state updater function
             setComments(prev => prev.filter(c => c.id !== commentId));
 
             if (onCommentDeleted) onCommentDeleted(commentId);
 
-            // Mostrar mensaje de éxito
-            setSuccessMessage('Comentario eliminado exitosamente');
+            // Show success message
+            setSuccessMessage('Comment deleted successfully');
             setTimeout(() => setSuccessMessage(''), 3000);
 
         } catch (err: any) {
             console.error("Error deleting comment:", err.response?.data || err.message);
-            alert("Error al eliminar el comentario");
+            alert("Failed to delete comment");
         }
     };
 
-    if (loading) return <div className="comments-loading">Cargando comentarios...</div>;
+    if (loading) return <div className="comments-loading">Loading comments...</div>;
     if (error) return <div className="comments-error">{error}</div>;
-    if (comments.length === 0) return <div className="no-comments">No hay comentarios todavía. ¡Sé el primero en comentar!</div>;
+    if (comments.length === 0) return <div className="no-comments">No comments yet. Be the first to comment!</div>;
 
     return (
         <div className="comment-list">
-            <h3>Comentarios ({comments.length})</h3>
+            <h3>Comments ({comments.length})</h3>
 
             {successMessage && <div className="success-message">{successMessage}</div>}
 
@@ -78,7 +78,7 @@ const CommentList: React.FC<CommentListProps> = ({
                                 className="comment-delete-btn"
                                 onClick={() => handleDelete(comment.id)}
                             >
-                                Eliminar
+                                Delete
                             </button>
                         )}
                     </div>

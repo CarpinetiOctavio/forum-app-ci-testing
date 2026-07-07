@@ -4,17 +4,17 @@ import (
 	"errors"
 	"strings"
 
-	"tp06-testing/internal/models"
-	"tp06-testing/internal/repository"
+	"forum-app-ci-testing/internal/models"
+	"forum-app-ci-testing/internal/repository"
 )
 
-// PostService maneja la lógica de posts y comentarios
+// PostService handles post and comment logic
 type PostService struct {
 	postRepo repository.PostRepository
 	userRepo repository.UserRepository
 }
 
-// NewPostService crea una nueva instancia
+// NewPostService creates a new instance
 func NewPostService(postRepo repository.PostRepository, userRepo repository.UserRepository) *PostService {
 	return &PostService{
 		postRepo: postRepo,
@@ -22,33 +22,33 @@ func NewPostService(postRepo repository.PostRepository, userRepo repository.User
 	}
 }
 
-// CreatePost crea un nuevo post
+// CreatePost creates a new post
 func (s *PostService) CreatePost(req *models.CreatePostRequest, userID int) (*models.Post, error) {
-	// Validación 1: Título no puede estar vacío
+	// Validation 1: Title cannot be empty
 	if strings.TrimSpace(req.Title) == "" {
-		return nil, errors.New("el título es requerido")
+		return nil, errors.New("title is required")
 	}
 
-	// Validación 2: Título debe tener al menos 3 caracteres
+	// Validation 2: Title must be at least 3 characters
 	if len(strings.TrimSpace(req.Title)) < 3 {
-		return nil, errors.New("el título debe tener al menos 3 caracteres")
+		return nil, errors.New("title must be at least 3 characters")
 	}
 
-	// Validación 3: Contenido no puede estar vacío
+	// Validation 3: Content cannot be empty
 	if strings.TrimSpace(req.Content) == "" {
-		return nil, errors.New("el contenido es requerido")
+		return nil, errors.New("content is required")
 	}
 
-	// Validación 4: Usuario debe existir
+	// Validation 4: User must exist
 	user, err := s.userRepo.FindByID(userID)
 	if err != nil {
 		return nil, err
 	}
 	if user == nil {
-		return nil, errors.New("usuario no encontrado")
+		return nil, errors.New("user not found")
 	}
 
-	// Crear el post
+	// Create the post
 	post := &models.Post{
 		Title:   strings.TrimSpace(req.Title),
 		Content: strings.TrimSpace(req.Content),
@@ -60,20 +60,20 @@ func (s *PostService) CreatePost(req *models.CreatePostRequest, userID int) (*mo
 		return nil, err
 	}
 
-	// Agregar el username para la respuesta
+	// Add the username for the response
 	post.Username = user.Username
 
 	return post, nil
 }
 
-// GetAllPosts obtiene todos los posts
+// GetAllPosts retrieves all posts
 func (s *PostService) GetAllPosts() ([]*models.Post, error) {
 	posts, err := s.postRepo.FindAll()
 	if err != nil {
 		return nil, err
 	}
 
-	// Si no hay posts, devolver lista vacía (no es error)
+	// If there are no posts, return an empty list (not an error)
 	if posts == nil {
 		return []*models.Post{}, nil
 	}
@@ -81,11 +81,11 @@ func (s *PostService) GetAllPosts() ([]*models.Post, error) {
 	return posts, nil
 }
 
-// GetPostByID obtiene un post específico
+// GetPostByID retrieves a specific post
 func (s *PostService) GetPostByID(id int) (*models.Post, error) {
-	// Validación: ID debe ser positivo
+	// Validation: ID must be positive
 	if id <= 0 {
-		return nil, errors.New("id inválido")
+		return nil, errors.New("invalid id")
 	}
 
 	post, err := s.postRepo.FindByID(id)
@@ -94,58 +94,58 @@ func (s *PostService) GetPostByID(id int) (*models.Post, error) {
 	}
 
 	if post == nil {
-		return nil, errors.New("post no encontrado")
+		return nil, errors.New("post not found")
 	}
 
 	return post, nil
 }
 
-// DeletePost elimina un post (solo el autor puede hacerlo)
+// DeletePost removes a post (only the author may do so)
 func (s *PostService) DeletePost(postID int, userID int) error {
-	// Validación 1: Post debe existir
+	// Validation 1: Post must exist
 	post, err := s.postRepo.FindByID(postID)
 	if err != nil {
 		return err
 	}
 	if post == nil {
-		return errors.New("post no encontrado")
+		return errors.New("post not found")
 	}
 
-	// Validación 2: Solo el autor puede eliminar
+	// Validation 2: Only the author may delete
 	if post.UserID != userID {
-		return errors.New("no tienes permiso para eliminar este post")
+		return errors.New("you do not have permission to delete this post")
 	}
 
-	// Eliminar
+	// Delete
 	return s.postRepo.Delete(postID)
 }
 
-// CreateComment agrega un comentario a un post
+// CreateComment adds a comment to a post
 func (s *PostService) CreateComment(postID int, req *models.CreateCommentRequest, userID int) (*models.Comment, error) {
-	// Validación 1: Contenido no puede estar vacío
+	// Validation 1: Content cannot be empty
 	if strings.TrimSpace(req.Content) == "" {
-		return nil, errors.New("el contenido del comentario es requerido")
+		return nil, errors.New("comment content is required")
 	}
 
-	// Validación 2: Post debe existir
+	// Validation 2: Post must exist
 	post, err := s.postRepo.FindByID(postID)
 	if err != nil {
 		return nil, err
 	}
 	if post == nil {
-		return nil, errors.New("post no encontrado")
+		return nil, errors.New("post not found")
 	}
 
-	// Validación 3: Usuario debe existir
+	// Validation 3: User must exist
 	user, err := s.userRepo.FindByID(userID)
 	if err != nil {
 		return nil, err
 	}
 	if user == nil {
-		return nil, errors.New("usuario no encontrado")
+		return nil, errors.New("user not found")
 	}
 
-	// Crear comentario
+	// Create the comment
 	comment := &models.Comment{
 		PostID:  postID,
 		UserID:  userID,
@@ -157,21 +157,21 @@ func (s *PostService) CreateComment(postID int, req *models.CreateCommentRequest
 		return nil, err
 	}
 
-	// Agregar username para la respuesta
+	// Add the username for the response
 	comment.Username = user.Username
 
 	return comment, nil
 }
 
-// GetCommentsByPostID obtiene todos los comentarios de un post
+// GetCommentsByPostID retrieves all comments for a post
 func (s *PostService) GetCommentsByPostID(postID int) ([]*models.Comment, error) {
-	// Validación: Post debe existir
+	// Validation: Post must exist
 	post, err := s.postRepo.FindByID(postID)
 	if err != nil {
 		return nil, err
 	}
 	if post == nil {
-		return nil, errors.New("post no encontrado")
+		return nil, errors.New("post not found")
 	}
 
 	comments, err := s.postRepo.FindCommentsByPostID(postID)
@@ -179,7 +179,7 @@ func (s *PostService) GetCommentsByPostID(postID int) ([]*models.Comment, error)
 		return nil, err
 	}
 
-	// Si no hay comentarios, devolver lista vacía
+	// If there are no comments, return an empty list
 	if comments == nil {
 		return []*models.Comment{}, nil
 	}
@@ -188,24 +188,24 @@ func (s *PostService) GetCommentsByPostID(postID int) ([]*models.Comment, error)
 }
 
 func (s *PostService) DeleteComment(postID int, commentID int, userID int) error {
-	// Validación: Post debe existir
+	// Validation: Post must exist
 	post, err := s.postRepo.FindByID(postID)
 	if err != nil {
 		return err
 	}
 	if post == nil {
-		return errors.New("post no encontrado")
+		return errors.New("post not found")
 	}
 
-	// Validación: Usuario debe existir
+	// Validation: User must exist
 	user, err := s.userRepo.FindByID(userID)
 	if err != nil {
 		return err
 	}
 	if user == nil {
-		return errors.New("usuario no encontrado")
+		return errors.New("user not found")
 	}
 
-	// Eliminar comentario (solo el autor puede)
+	// Delete comment (only the author may do so)
 	return s.postRepo.DeleteComment(postID, commentID, userID)
 }
