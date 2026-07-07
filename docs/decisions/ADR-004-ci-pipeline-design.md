@@ -105,3 +105,90 @@ gate.
   design (see rationale above); catching a silently-broken measurement
   depends on periodically inspecting what the artifact actually contains,
   which is what surfaced this one.
+
+## Branching model correction: from post-hoc verification to preventive gate
+
+### Context
+The original trigger (`push` to `main`/`master`/`develop`, plus `pull_request`
+to the same branches) let code reach `main` before the pipeline validated it.
+Because `push` to `main` was itself a trigger, the pipeline ran *after* the
+code was already on the branch it was meant to protect — a failure was
+discovered post-hoc, not prevented. A `pull_request` trigger alongside a
+`push`-to-`main` trigger is decorative under these conditions: anyone could
+bypass the PR entirely by pushing directly to `main`, and the pipeline would
+still "pass" retroactively on that same push. This defeats the stated purpose
+of a CI gate — validating before merge, not after.
+
+### Decision
+Adopt a three-branch model: `feature/* → staging (PR) → main (PR)`.
+- `feature/**`: isolated development. Pipeline triggers on `push` — fast
+  feedback while the branch is still private to its own line of work.
+- `staging`: the first and only path into a shared branch. Pipeline triggers
+  on `pull_request` into `staging` and is a required check before merge —
+  the first gate.
+- `main`: stable, tagged history. Pipeline triggers on `pull_request` into
+  `main` and is a required check before merge — the second gate. No trigger
+  exists for `push` to `main` at all.
+
+### Rationale
+- **Each branch's responsibility is exactly what its trigger enforces, not
+  more.** `feature/**` is where iteration happens without any gate on
+  merge — a push-triggered run there is diagnostic, not a blocker, because
+  nothing merges into a feature branch from outside it. `staging` exists
+  specifically to be the first point where a PR — not a push — is what the
+  pipeline reacts to; it validates code before it reaches any shared,
+  semi-stable branch. `main` repeats that same discipline once more, as the
+  last checkpoint before a commit becomes part of the tagged, stable history
+  this repo's series treats as a real deliverable.
+- **No `develop` branch, deliberately.** A `develop` branch exists in team
+  workflows to integrate parallel work from multiple committers before it's
+  ready to move forward. This repository has exactly one committer — there
+  is no parallel work to integrate, and adding `develop` anyway would have
+  meant copying the shape of a team workflow without any of the problem it
+  exists to solve. That is worse than not having it: it would look like
+  understanding the pattern while actually just imitating its structure.
+- **Removing `push` as a trigger for `main` is the actual fix, not a side
+  effect.** The single change that converts this pipeline from post-hoc
+  verification to a preventive gate is dropping `push: branches: [main]`.
+  Everything else in this model (`staging` as an intermediate gate,
+  `feature/**` for early feedback) exists to give that removal somewhere to
+  land — without an intermediate branch, removing `push` to `main` would
+  mean no branch anywhere gets fast, push-triggered feedback during active
+  development.
+
+### Alternatives considered
+- **`feature/* → develop → staging → main`:** rejected. `develop`'s entire
+  reason to exist is reconciling parallel work from more than one committer
+  before it's ready to move forward. With a single committer, that
+  reconciliation never happens — the branch would carry no real integration
+  work, only ceremony. Adding it would have demonstrated the ability to copy
+  a team's branching diagram, not the judgment to know which part of it
+  applies here.
+- **Direct push to `main`, with both `push` and `pull_request` triggers on
+  it:** rejected. A `pull_request` trigger is only a gate if the only way to
+  reach the protected branch is through a PR. As long as `push` to `main` is
+  also a trigger, anyone can skip the PR and push directly — the pipeline
+  still runs and still reports green, but after the fact, on code already
+  merged. Keeping both triggers on the same branch does not add safety, it
+  just adds a second way to reach the same unprotected outcome.
+
+### Consequences
+- The commit history on `main` prior to this change is **not rewritten**.
+  Every commit before it was made under the old, flawed trigger model — that
+  is documented here honestly, as a recognized error corrected going
+  forward, not erased or hidden by rewriting history to look as if this
+  model was always in place.
+- **Commit `d5ff9bc`** (`ci: adopt feature→staging→main branching model`) is
+  the exact point where the corrected model takes effect: it changed
+  `.github/workflows/ci.yml`'s trigger, updated
+  `docs/diagrams/ci-pipeline-flow.svg`, added
+  `docs/diagrams/branching-model.svg`, and updated the README's Pipeline &
+  Testing section accordingly. Any commit before this one predates the fix
+  described in this section.
+- **The trigger change alone does not enforce the model.** Nothing in
+  `ci.yml` or in Git itself stops a direct `git push origin main` — that
+  requires a branch protection rule configured on the GitHub repository
+  itself (Settings → Branches: require a pull request before merging,
+  require the pipeline as a passing status check), which is **pending
+  manual configuration by Octavio** and is out of scope for what a workflow
+  file or a local git command can do.
