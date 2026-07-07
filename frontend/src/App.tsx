@@ -39,20 +39,20 @@ function App() {
     setRefreshPosts(!refreshPosts);
   };
 
-  // Si no está logueado, mostrar login
+  // Show login if not authenticated
   if (!currentUser) {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // Si está logueado, mostrar la app
+  // Show app if authenticated
   return (
     <div className="App">
       <header className="app-header">
-        <h1>🚀 Mini Red Social</h1>
+        <h1>🚀 Mini Social Network</h1>
         <div className="user-info">
-          <span>Hola, @{currentUser.username}</span>
+          <span>Hello, @{currentUser.username}</span>
           <button onClick={handleLogout} className="logout-btn">
-            Cerrar Sesión
+            Log Out
           </button>
         </div>
       </header>

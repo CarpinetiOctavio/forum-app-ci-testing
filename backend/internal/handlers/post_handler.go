@@ -6,46 +6,46 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"tp06-testing/internal/models"
-	"tp06-testing/internal/services"
+	"forum-app-ci-testing/internal/models"
+	"forum-app-ci-testing/internal/services"
 )
 
-// PostHandler maneja las peticiones HTTP de posts
+// PostHandler handles post HTTP requests
 type PostHandler struct {
 	postService *services.PostService
 }
 
-// NewPostHandler crea una nueva instancia
+// NewPostHandler creates a new instance
 func NewPostHandler(postService *services.PostService) *PostHandler {
 	return &PostHandler{
 		postService: postService,
 	}
 }
 
-// CreatePost maneja POST /api/posts
+// CreatePost handles POST /api/posts
 func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
-	// Decodificar el body
+	// Decode the body
 	var req models.CreatePostRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondWithError(w, http.StatusBadRequest, "JSON inválido")
+		respondWithError(w, http.StatusBadRequest, "invalid JSON")
 		return
 	}
 
-	// Por simplicidad, el userID viene en el header
-	// En producción usarías JWT o sesiones
+	// For simplicity, userID comes in the header
+	// In production you would use JWT or sessions
 	userIDStr := r.Header.Get("X-User-ID")
 	if userIDStr == "" {
-		respondWithError(w, http.StatusUnauthorized, "Usuario no autenticado")
+		respondWithError(w, http.StatusUnauthorized, "user not authenticated")
 		return
 	}
 
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "User ID inválido")
+		respondWithError(w, http.StatusBadRequest, "invalid user ID")
 		return
 	}
 
-	// Llamar al servicio
+	// Call the service
 	post, err := h.postService.CreatePost(&req, userID)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
@@ -55,7 +55,7 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusCreated, post)
 }
 
-// GetAllPosts maneja GET /api/posts
+// GetAllPosts handles GET /api/posts
 func (h *PostHandler) GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	posts, err := h.postService.GetAllPosts()
 	if err != nil {
@@ -66,13 +66,13 @@ func (h *PostHandler) GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, posts)
 }
 
-// GetPostByID maneja GET /api/posts/{id}
+// GetPostByID handles GET /api/posts/{id}
 func (h *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
-	// Obtener el ID de la URL
+	// Get the ID from the URL
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "ID inválido")
+		respondWithError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
@@ -85,70 +85,70 @@ func (h *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, post)
 }
 
-// DeletePost maneja DELETE /api/posts/{id}
+// DeletePost handles DELETE /api/posts/{id}
 func (h *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
-	// Obtener el ID de la URL
+	// Get the ID from the URL
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "ID inválido")
+		respondWithError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
-	// Obtener userID del header
+	// Get userID from the header
 	userIDStr := r.Header.Get("X-User-ID")
 	if userIDStr == "" {
-		respondWithError(w, http.StatusUnauthorized, "Usuario no autenticado")
+		respondWithError(w, http.StatusUnauthorized, "user not authenticated")
 		return
 	}
 
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "User ID inválido")
+		respondWithError(w, http.StatusBadRequest, "invalid user ID")
 		return
 	}
 
-	// Llamar al servicio
+	// Call the service
 	err = h.postService.DeletePost(id, userID)
 	if err != nil {
 		respondWithError(w, http.StatusForbidden, err.Error())
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, map[string]string{"message": "Post eliminado"})
+	respondWithJSON(w, http.StatusOK, map[string]string{"message": "post deleted"})
 }
 
-// CreateComment maneja POST /api/posts/{id}/comments
+// CreateComment handles POST /api/posts/{id}/comments
 func (h *PostHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
-	// Obtener postID de la URL
+	// Get postID from the URL
 	vars := mux.Vars(r)
 	postID, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "ID inválido")
+		respondWithError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
-	// Decodificar el body
+	// Decode the body
 	var req models.CreateCommentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondWithError(w, http.StatusBadRequest, "JSON inválido")
+		respondWithError(w, http.StatusBadRequest, "invalid JSON")
 		return
 	}
 
-	// Obtener userID del header
+	// Get userID from the header
 	userIDStr := r.Header.Get("X-User-ID")
 	if userIDStr == "" {
-		respondWithError(w, http.StatusUnauthorized, "Usuario no autenticado")
+		respondWithError(w, http.StatusUnauthorized, "user not authenticated")
 		return
 	}
 
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "User ID inválido")
+		respondWithError(w, http.StatusBadRequest, "invalid user ID")
 		return
 	}
 
-	// Llamar al servicio
+	// Call the service
 	comment, err := h.postService.CreateComment(postID, &req, userID)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
@@ -158,13 +158,13 @@ func (h *PostHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusCreated, comment)
 }
 
-// GetComments maneja GET /api/posts/{id}/comments
+// GetComments handles GET /api/posts/{id}/comments
 func (h *PostHandler) GetComments(w http.ResponseWriter, r *http.Request) {
-	// Obtener postID de la URL
+	// Get postID from the URL
 	vars := mux.Vars(r)
 	postID, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "ID inválido")
+		respondWithError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
@@ -182,23 +182,23 @@ func (h *PostHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	postID, err := strconv.Atoi(vars["postId"])
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Post ID inválido")
+		respondWithError(w, http.StatusBadRequest, "invalid post ID")
 		return
 	}
 	commentID, err := strconv.Atoi(vars["commentId"])
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Comment ID inválido")
+		respondWithError(w, http.StatusBadRequest, "invalid comment ID")
 		return
 	}
 
 	userIDStr := r.Header.Get("X-User-ID")
 	if userIDStr == "" {
-		respondWithError(w, http.StatusUnauthorized, "Usuario no autenticado")
+		respondWithError(w, http.StatusUnauthorized, "user not authenticated")
 		return
 	}
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "User ID inválido")
+		respondWithError(w, http.StatusBadRequest, "invalid user ID")
 		return
 	}
 
@@ -208,5 +208,5 @@ func (h *PostHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, map[string]string{"message": "Comentario eliminado"})
+	respondWithJSON(w, http.StatusOK, map[string]string{"message": "comment deleted"})
 }

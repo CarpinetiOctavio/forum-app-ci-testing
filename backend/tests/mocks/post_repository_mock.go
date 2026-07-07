@@ -1,23 +1,23 @@
 package mocks
 
 import (
-	"tp06-testing/internal/models"
+	"forum-app-ci-testing/internal/models"
 
 	"github.com/stretchr/testify/mock"
 )
 
-// MockPostRepository es un mock del PostRepository
+// MockPostRepository is a mock of PostRepository
 type MockPostRepository struct {
 	mock.Mock
 }
 
-// Create simula la creación de un post
+// Create simulates creating a post
 func (m *MockPostRepository) Create(post *models.Post) error {
 	args := m.Called(post)
 	return args.Error(0)
 }
 
-// FindAll simula obtener todos los posts
+// FindAll simulates retrieving all posts
 func (m *MockPostRepository) FindAll() ([]*models.Post, error) {
 	args := m.Called()
 
@@ -28,7 +28,7 @@ func (m *MockPostRepository) FindAll() ([]*models.Post, error) {
 	return args.Get(0).([]*models.Post), args.Error(1)
 }
 
-// FindByID simula buscar un post por ID
+// FindByID simulates looking up a post by ID
 func (m *MockPostRepository) FindByID(id int) (*models.Post, error) {
 	args := m.Called(id)
 
@@ -39,19 +39,19 @@ func (m *MockPostRepository) FindByID(id int) (*models.Post, error) {
 	return args.Get(0).(*models.Post), args.Error(1)
 }
 
-// Delete simula eliminar un post
+// Delete simulates deleting a post
 func (m *MockPostRepository) Delete(id int) error {
 	args := m.Called(id)
 	return args.Error(0)
 }
 
-// CreateComment simula crear un comentario
+// CreateComment simulates creating a comment
 func (m *MockPostRepository) CreateComment(comment *models.Comment) error {
 	args := m.Called(comment)
 	return args.Error(0)
 }
 
-// FindCommentsByPostID simula obtener comentarios de un post
+// FindCommentsByPostID simulates retrieving comments for a post
 func (m *MockPostRepository) FindCommentsByPostID(postID int) ([]*models.Comment, error) {
 	args := m.Called(postID)
 
@@ -62,7 +62,7 @@ func (m *MockPostRepository) FindCommentsByPostID(postID int) ([]*models.Comment
 	return args.Get(0).([]*models.Comment), args.Error(1)
 }
 
-// DeleteComment simula eliminar un comentario
+// DeleteComment simulates deleting a comment
 func (m *MockPostRepository) DeleteComment(postID int, commentID int, userID int) error {
 	args := m.Called(postID, commentID, userID)
 	return args.Error(0)

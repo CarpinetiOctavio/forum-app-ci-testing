@@ -4,39 +4,39 @@ import (
 	"log"
 	"net/http"
 
-	"tp06-testing/internal/database"
-	"tp06-testing/internal/handlers"
-	"tp06-testing/internal/repository"
-	"tp06-testing/internal/router"
-	"tp06-testing/internal/services"
+	"forum-app-ci-testing/internal/database"
+	"forum-app-ci-testing/internal/handlers"
+	"forum-app-ci-testing/internal/repository"
+	"forum-app-ci-testing/internal/router"
+	"forum-app-ci-testing/internal/services"
 )
 
 func main() {
-	// Inicializar base de datos
+	// Initialize database
 	db, err := database.InitDB("./database.db")
 	if err != nil {
-		log.Fatal("Error al inicializar la base de datos:", err)
+		log.Fatal("Failed to initialize database:", err)
 	}
 	defer db.Close()
 
-	// Crear repositorios
+	// Create repositories
 	userRepo := repository.NewSQLiteUserRepository(db)
 	postRepo := repository.NewSQLitePostRepository(db)
 
-	// Crear servicios
+	// Create services
 	authService := services.NewAuthService(userRepo)
 	postService := services.NewPostService(postRepo, userRepo)
 
-	// Crear handlers
+	// Create handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	postHandler := handlers.NewPostHandler(postService)
 
-	// Configurar rutas
+	// Configure routes
 	r := router.Setup(authHandler, postHandler)
 
-	// Iniciar servidor
-	log.Println("🚀 Servidor corriendo en http://localhost:8080")
+	// Start server
+	log.Println("🚀 Server running at http://localhost:8080")
 	if err := http.ListenAndServe(":8080", r); err != nil {
-		log.Fatal("Error al iniciar el servidor:", err)
+		log.Fatal("Failed to start server:", err)
 	}
 }

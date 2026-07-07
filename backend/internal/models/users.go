@@ -2,22 +2,22 @@ package models
 
 import "time"
 
-// User representa un usuario del sistema
+// User represents a system user
 type User struct {
 	ID        int       `json:"id"`
 	Email     string    `json:"email"`
-	Password  string    `json:"-"` // No se serializa en JSON (por seguridad)
+	Password  string    `json:"-"` // Not serialized in JSON (for security)
 	Username  string    `json:"username"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// Credentials se usa para login
+// Credentials is used for login
 type Credentials struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-// RegisterRequest se usa para registro
+// RegisterRequest is used for registration
 type RegisterRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`

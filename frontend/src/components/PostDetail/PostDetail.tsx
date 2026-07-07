@@ -26,7 +26,7 @@ export const PostDetail: React.FC<PostDetailProps> = ({ postId, userId, onBack }
         setPost(data);
         setError('');
       } catch (err: any) {
-        setError('Error al cargar el post');
+        setError('Failed to load post');
       } finally {
         setLoading(false);
       }
@@ -40,14 +40,14 @@ export const PostDetail: React.FC<PostDetailProps> = ({ postId, userId, onBack }
   };
 
   if (loading) {
-    return <div className="post-detail-loading">Cargando post...</div>;
+    return <div className="post-detail-loading">Loading post...</div>;
   }
 
   if (error || !post) {
     return (
       <div className="post-detail-error">
-        <p>{error || 'Post no encontrado'}</p>
-        <button onClick={onBack}>Volver</button>
+        <p>{error || 'Post not found'}</p>
+        <button onClick={onBack}>Back</button>
       </div>
     );
   }
@@ -55,13 +55,13 @@ export const PostDetail: React.FC<PostDetailProps> = ({ postId, userId, onBack }
   return (
     <div className="post-detail-container">
       <button className="back-btn" onClick={onBack}>
-        ← Volver
+        ← Back
       </button>
 
       <div className="post-detail-card">
         <h1>{post.title}</h1>
         <div className="post-detail-meta">
-          <span className="post-detail-author">Por @{post.username}</span>
+          <span className="post-detail-author">By @{post.username}</span>
           <span className="post-detail-date">
             {new Date(post.created_at).toLocaleDateString()}
           </span>

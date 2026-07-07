@@ -23,7 +23,7 @@ export const CommentForm: React.FC<CommentFormProps> = ({ postId, userId, onComm
       setContent('');
       onCommentCreated();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Error al crear comentario');
+      setError(err.response?.data?.error || 'Failed to create comment');
     } finally {
       setLoading(false);
     }
@@ -31,12 +31,12 @@ export const CommentForm: React.FC<CommentFormProps> = ({ postId, userId, onComm
 
   return (
     <div className="comment-form-container">
-      <h3>Agregar Comentario</h3>
+      <h3>Add Comment</h3>
       <form onSubmit={handleSubmit}>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Escribe tu comentario..."
+          placeholder="Write your comment..."
           rows={3}
           required
           disabled={loading}
@@ -45,7 +45,7 @@ export const CommentForm: React.FC<CommentFormProps> = ({ postId, userId, onComm
         {error && <div className="error-message">{error}</div>}
 
         <button type="submit" disabled={loading || !content.trim()}>
-          {loading ? 'Publicando...' : 'Comentar'}
+          {loading ? 'Publishing...' : 'Comment'}
         </button>
       </form>
     </div>

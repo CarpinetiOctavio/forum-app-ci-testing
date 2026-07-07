@@ -3,15 +3,15 @@ package services
 import (
 	"testing"
 
-	"tp06-testing/internal/models"
-	"tp06-testing/internal/services"
-	"tp06-testing/tests/mocks"
+	"forum-app-ci-testing/internal/models"
+	"forum-app-ci-testing/internal/services"
+	"forum-app-ci-testing/tests/mocks"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-// TestRegister_Success prueba el registro exitoso de un usuario
+// TestRegister_Success verifies a user registers successfully
 func TestRegister_Success(t *testing.T) {
 	// ARRANGE: Preparar el mock y datos de prueba
 	mockRepo := new(mocks.MockUserRepository)
@@ -29,7 +29,7 @@ func TestRegister_Success(t *testing.T) {
 		Username: "testuser",
 	}
 
-	// ACT: Ejecutar la función que estamos probando
+	// ACT: Execute the function under test
 	user, err := authService.Register(req)
 
 	// ASSERT: Verificar los resultados
@@ -38,18 +38,18 @@ func TestRegister_Success(t *testing.T) {
 	assert.Equal(t, "test@example.com", user.Email)
 	assert.Equal(t, "testuser", user.Username)
 
-	// Verificar que se llamaron los métodos del mock
+	// Verify the mock's methods were called
 	mockRepo.AssertExpectations(t)
 }
 
-// TestRegister_EmailVacio prueba que falle con email vacío
-func TestRegister_EmailVacio(t *testing.T) {
+// TestRegister_EmptyEmail verifies registration fails when the email is empty
+func TestRegister_EmptyEmail(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockUserRepository)
 	authService := services.NewAuthService(mockRepo)
 
 	req := &models.RegisterRequest{
-		Email:    "", // Email vacío
+		Email:    "", // Empty email
 		Password: "123456",
 		Username: "testuser",
 	}
@@ -60,21 +60,21 @@ func TestRegister_EmailVacio(t *testing.T) {
 	// ASSERT
 	assert.Error(t, err)
 	assert.Nil(t, user)
-	assert.Equal(t, "el email es requerido", err.Error())
+	assert.Equal(t, "email is required", err.Error())
 
-	// NO debe haber llamado a la BD porque falló la validación antes
+	// Should NOT have called the DB because validation failed first
 	mockRepo.AssertNotCalled(t, "FindByEmail")
 	mockRepo.AssertNotCalled(t, "Create")
 }
 
-// TestRegister_EmailInvalido prueba que falle con email sin @
-func TestRegister_EmailInvalido(t *testing.T) {
+// TestRegister_InvalidEmail verifies registration fails when the email is missing the @ symbol
+func TestRegister_InvalidEmail(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockUserRepository)
 	authService := services.NewAuthService(mockRepo)
 
 	req := &models.RegisterRequest{
-		Email:    "invalidemail", // Sin @
+		Email:    "invalidemail", // Missing @
 		Password: "123456",
 		Username: "testuser",
 	}
@@ -85,18 +85,18 @@ func TestRegister_EmailInvalido(t *testing.T) {
 	// ASSERT
 	assert.Error(t, err)
 	assert.Nil(t, user)
-	assert.Equal(t, "el email debe ser válido", err.Error())
+	assert.Equal(t, "email must be valid", err.Error())
 }
 
-// TestRegister_PasswordCorto prueba que falle con password menor a 6 caracteres
-func TestRegister_PasswordCorto(t *testing.T) {
+// TestRegister_PasswordTooShort verifies registration fails when the password is under 6 characters
+func TestRegister_PasswordTooShort(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockUserRepository)
 	authService := services.NewAuthService(mockRepo)
 
 	req := &models.RegisterRequest{
 		Email:    "test@example.com",
-		Password: "123", // Muy corto
+		Password: "123", // Too short
 		Username: "testuser",
 	}
 
@@ -106,11 +106,11 @@ func TestRegister_PasswordCorto(t *testing.T) {
 	// ASSERT
 	assert.Error(t, err)
 	assert.Nil(t, user)
-	assert.Equal(t, "la contraseña debe tener al menos 6 caracteres", err.Error())
+	assert.Equal(t, "password must be at least 6 characters", err.Error())
 }
 
-// TestRegister_UsernameVacio prueba que falle con username vacío
-func TestRegister_UsernameVacio(t *testing.T) {
+// TestRegister_EmptyUsername verifies registration fails when the username is empty
+func TestRegister_EmptyUsername(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockUserRepository)
 	authService := services.NewAuthService(mockRepo)
@@ -118,7 +118,7 @@ func TestRegister_UsernameVacio(t *testing.T) {
 	req := &models.RegisterRequest{
 		Email:    "test@example.com",
 		Password: "123456",
-		Username: "", // Username vacío
+		Username: "", // Empty username
 	}
 
 	// ACT
@@ -127,11 +127,11 @@ func TestRegister_UsernameVacio(t *testing.T) {
 	// ASSERT
 	assert.Error(t, err)
 	assert.Nil(t, user)
-	assert.Equal(t, "el nombre de usuario es requerido", err.Error())
+	assert.Equal(t, "username is required", err.Error())
 }
 
-// TestRegister_EmailDuplicado prueba que falle si el email ya existe
-func TestRegister_EmailDuplicado(t *testing.T) {
+// TestRegister_DuplicateEmail verifies registration fails when the email is already registered
+func TestRegister_DuplicateEmail(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockUserRepository)
 	authService := services.NewAuthService(mockRepo)
@@ -157,13 +157,13 @@ func TestRegister_EmailDuplicado(t *testing.T) {
 	// ASSERT
 	assert.Error(t, err)
 	assert.Nil(t, user)
-	assert.Equal(t, "el email ya está registrado", err.Error())
+	assert.Equal(t, "email is already registered", err.Error())
 
 	// NO debe llamar a Create porque el email ya existe
 	mockRepo.AssertNotCalled(t, "Create")
 }
 
-// TestLogin_Success prueba el login exitoso
+// TestLogin_Success verifies a user logs in successfully
 func TestLogin_Success(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockUserRepository)
@@ -176,7 +176,7 @@ func TestLogin_Success(t *testing.T) {
 		Username: "testuser",
 	}
 
-	// Configurar el mock: el usuario existe
+	// Configure the mock: the user exists
 	mockRepo.On("FindByEmail", "test@example.com").Return(existingUser, nil)
 
 	creds := &models.Credentials{
@@ -196,8 +196,8 @@ func TestLogin_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-// TestLogin_EmailVacio prueba que falle con email vacío
-func TestLogin_EmailVacio(t *testing.T) {
+// TestLogin_EmptyEmail verifies login fails when the email is empty
+func TestLogin_EmptyEmail(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockUserRepository)
 	authService := services.NewAuthService(mockRepo)
@@ -213,13 +213,13 @@ func TestLogin_EmailVacio(t *testing.T) {
 	// ASSERT
 	assert.Error(t, err)
 	assert.Nil(t, user)
-	assert.Equal(t, "el email es requerido", err.Error())
+	assert.Equal(t, "email is required", err.Error())
 
 	mockRepo.AssertNotCalled(t, "FindByEmail")
 }
 
-// TestLogin_PasswordVacio prueba que falle con password vacío
-func TestLogin_PasswordVacio(t *testing.T) {
+// TestLogin_EmptyPassword verifies login fails when the password is empty
+func TestLogin_EmptyPassword(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockUserRepository)
 	authService := services.NewAuthService(mockRepo)
@@ -235,16 +235,16 @@ func TestLogin_PasswordVacio(t *testing.T) {
 	// ASSERT
 	assert.Error(t, err)
 	assert.Nil(t, user)
-	assert.Equal(t, "la contraseña es requerida", err.Error())
+	assert.Equal(t, "password is required", err.Error())
 }
 
-// TestLogin_UsuarioNoExiste prueba que falle si el usuario no existe
-func TestLogin_UsuarioNoExiste(t *testing.T) {
+// TestLogin_UserNotFound verifies login fails when no user matches the given email
+func TestLogin_UserNotFound(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockUserRepository)
 	authService := services.NewAuthService(mockRepo)
 
-	// Configurar el mock: el usuario NO existe
+	// Configure the mock: the user does NOT exist
 	mockRepo.On("FindByEmail", "noexiste@example.com").Return(nil, nil)
 
 	creds := &models.Credentials{
@@ -258,13 +258,13 @@ func TestLogin_UsuarioNoExiste(t *testing.T) {
 	// ASSERT
 	assert.Error(t, err)
 	assert.Nil(t, user)
-	assert.Equal(t, "credenciales inválidas", err.Error())
+	assert.Equal(t, "invalid credentials", err.Error())
 
 	mockRepo.AssertExpectations(t)
 }
 
-// TestLogin_PasswordIncorrecta prueba que falle con password incorrecta
-func TestLogin_PasswordIncorrecta(t *testing.T) {
+// TestLogin_IncorrectPassword verifies login fails when the password does not match
+func TestLogin_IncorrectPassword(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockUserRepository)
 	authService := services.NewAuthService(mockRepo)
@@ -280,7 +280,7 @@ func TestLogin_PasswordIncorrecta(t *testing.T) {
 
 	creds := &models.Credentials{
 		Email:    "test@example.com",
-		Password: "wrongpassword", // Password incorrecta
+		Password: "wrongpassword", // Incorrect password
 	}
 
 	// ACT
@@ -289,7 +289,7 @@ func TestLogin_PasswordIncorrecta(t *testing.T) {
 	// ASSERT
 	assert.Error(t, err)
 	assert.Nil(t, user)
-	assert.Equal(t, "credenciales inválidas", err.Error())
+	assert.Equal(t, "invalid credentials", err.Error())
 
 	mockRepo.AssertExpectations(t)
 }

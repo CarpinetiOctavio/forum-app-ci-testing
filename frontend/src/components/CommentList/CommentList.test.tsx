@@ -29,7 +29,7 @@ describe('CommentList Component', () => {
     jest.clearAllMocks();
   });
 
-  test('renderiza la lista de comentarios correctamente', async () => {
+  test('renders the comment list correctly', async () => {
     mockedAxios.get.mockResolvedValueOnce({ data: mockComments });
 
     render(<CommentList postId={1} currentUserId={1} />);
@@ -39,20 +39,20 @@ describe('CommentList Component', () => {
       expect(screen.getByText('Otro comentario')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Comentarios (2)')).toBeInTheDocument();
+    expect(screen.getByText('Comments (2)')).toBeInTheDocument();
   });
 
-  test('muestra "No hay comentarios" cuando está vacía', async () => {
+  test('shows an empty-state message when there are no comments', async () => {
     mockedAxios.get.mockResolvedValueOnce({ data: [] });
 
     render(<CommentList postId={1} currentUserId={1} />);
 
     await waitFor(() => {
-      expect(screen.getByText(/no hay comentarios todavía/i)).toBeInTheDocument();
+      expect(screen.getByText(/no comments yet/i)).toBeInTheDocument();
     });
   });
 
-  test('muestra botón eliminar solo para comentarios propios', async () => {
+  test("shows the delete button only for the current user's own comments", async () => {
     mockedAxios.get.mockResolvedValueOnce({ data: mockComments });
 
     render(<CommentList postId={1} currentUserId={1} />);
@@ -61,12 +61,12 @@ describe('CommentList Component', () => {
       expect(screen.getByText('Mi comentario')).toBeInTheDocument();
     });
 
-    // Solo debe haber 1 botón eliminar (para el comentario del usuario 1)
-    const deleteButtons = screen.queryAllByText(/eliminar/i);
+    // There should be exactly 1 delete button (for user 1's comment)
+    const deleteButtons = screen.queryAllByText(/^delete$/i);
     expect(deleteButtons).toHaveLength(1);
   });
 
-  test('elimina un comentario cuando se hace click en eliminar', async () => {
+  test('deletes a comment when the delete button is clicked', async () => {
     mockedAxios.get.mockResolvedValueOnce({ data: mockComments });
     mockedAxios.delete.mockResolvedValueOnce({ data: {} });
 
@@ -84,11 +84,11 @@ describe('CommentList Component', () => {
       expect(screen.getByText('Mi comentario')).toBeInTheDocument();
     });
 
-    // Click en eliminar
-    const deleteButton = screen.getByText(/eliminar/i);
+    // Click delete
+    const deleteButton = screen.getByText(/^delete$/i);
     fireEvent.click(deleteButton);
 
-    // Verificar que se llamó a delete
+    // Verify delete was called
     await waitFor(() => {
       expect(mockedAxios.delete).toHaveBeenCalledWith(
         'http://localhost:8080/api/posts/1/comments/1',
@@ -100,15 +100,15 @@ describe('CommentList Component', () => {
       );
     });
 
-    // Verificar que se llamó el callback
+    // Verify the callback was called
     expect(mockOnCommentDeleted).toHaveBeenCalledWith(1);
   });
 
-  test('muestra error cuando falla cargar comentarios', async () => {
+  test('shows an error message when loading comments fails', async () => {
     mockedAxios.get.mockRejectedValueOnce({
       response: {
         data: {
-          error: 'Error del servidor'
+          error: 'Failed to load comments'
         }
       }
     });
@@ -116,7 +116,7 @@ describe('CommentList Component', () => {
     render(<CommentList postId={1} currentUserId={1} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Error al cargar comentarios')).toBeInTheDocument();
+      expect(screen.getByText('Failed to load comments')).toBeInTheDocument();
     });
   });
 });

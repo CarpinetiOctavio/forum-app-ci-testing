@@ -1,4 +1,4 @@
-// Tipos que coinciden con los modelos del backend
+// Types that match the backend models
 
 export interface User {
     id: number;

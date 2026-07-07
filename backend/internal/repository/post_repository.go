@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"errors"
 
-	"tp06-testing/internal/models"
+	"forum-app-ci-testing/internal/models"
 )
 
-// PostRepository define las operaciones sobre posts
+// PostRepository defines the operations on posts
 type PostRepository interface {
 	Create(post *models.Post) error
 	FindAll() ([]*models.Post, error)
@@ -18,17 +18,17 @@ type PostRepository interface {
 	DeleteComment(postID int, commentID int, userID int) error
 }
 
-// SQLitePostRepository implementa PostRepository usando SQLite
+// SQLitePostRepository implements PostRepository using SQLite
 type SQLitePostRepository struct {
 	db *sql.DB
 }
 
-// NewSQLitePostRepository crea una nueva instancia
+// NewSQLitePostRepository creates a new instance
 func NewSQLitePostRepository(db *sql.DB) *SQLitePostRepository {
 	return &SQLitePostRepository{db: db}
 }
 
-// Create inserta un nuevo post
+// Create inserts a new post
 func (r *SQLitePostRepository) Create(post *models.Post) error {
 	query := `
 		INSERT INTO posts (title, content, user_id, created_at)
@@ -48,7 +48,7 @@ func (r *SQLitePostRepository) Create(post *models.Post) error {
 	return nil
 }
 
-// FindAll obtiene todos los posts con información del autor
+// FindAll retrieves all posts with author information
 func (r *SQLitePostRepository) FindAll() ([]*models.Post, error) {
 	query := `
 		SELECT p.id, p.title, p.content, p.user_id, u.username, p.created_at
@@ -83,7 +83,7 @@ func (r *SQLitePostRepository) FindAll() ([]*models.Post, error) {
 	return posts, nil
 }
 
-// FindByID busca un post por ID
+// FindByID looks up a post by ID
 func (r *SQLitePostRepository) FindByID(id int) (*models.Post, error) {
 	query := `
 		SELECT p.id, p.title, p.content, p.user_id, u.username, p.created_at
@@ -112,14 +112,14 @@ func (r *SQLitePostRepository) FindByID(id int) (*models.Post, error) {
 	return post, nil
 }
 
-// Delete elimina un post por ID
+// Delete removes a post by ID
 func (r *SQLitePostRepository) Delete(id int) error {
 	query := `DELETE FROM posts WHERE id = ?`
 	_, err := r.db.Exec(query, id)
 	return err
 }
 
-// CreateComment inserta un nuevo comentario
+// CreateComment inserts a new comment
 func (r *SQLitePostRepository) CreateComment(comment *models.Comment) error {
 	query := `
 		INSERT INTO comments (post_id, user_id, content, created_at)
@@ -139,7 +139,7 @@ func (r *SQLitePostRepository) CreateComment(comment *models.Comment) error {
 	return nil
 }
 
-// FindCommentsByPostID obtiene todos los comentarios de un post
+// FindCommentsByPostID retrieves all comments for a post
 func (r *SQLitePostRepository) FindCommentsByPostID(postID int) ([]*models.Comment, error) {
 	query := `
 		SELECT c.id, c.post_id, c.user_id, u.username, c.content, c.created_at
@@ -189,7 +189,7 @@ func (r *SQLitePostRepository) DeleteComment(postID int, commentID int, userID i
 		return err
 	}
 	if rowsAffected == 0 {
-		return errors.New("no tienes permiso para eliminar este comentario o no existe")
+		return errors.New("you do not have permission to delete this comment or it does not exist")
 	}
 	return nil
 }

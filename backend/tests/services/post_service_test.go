@@ -4,15 +4,15 @@ import (
 	"errors"
 	"testing"
 
-	"tp06-testing/internal/models"
-	"tp06-testing/internal/services"
-	"tp06-testing/tests/mocks"
+	"forum-app-ci-testing/internal/models"
+	"forum-app-ci-testing/internal/services"
+	"forum-app-ci-testing/tests/mocks"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-// TestCreatePost_Success prueba la creación exitosa de un post
+// TestCreatePost_Success verifies a post is created successfully
 func TestCreatePost_Success(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockPostRepository)
@@ -45,12 +45,12 @@ func TestCreatePost_Success(t *testing.T) {
 	assert.Equal(t, "Test Post", post.Title)
 	assert.Equal(t, "This is a test post", post.Content)
 
-	// Verificar que se llamaron los métodos del mock
+	// Verify the mock's methods were called
 	mockRepo.AssertExpectations(t)
-	mockUserRepo.AssertExpectations(t) // ← AGREGAR ESTO TAMBIÉN
+	mockUserRepo.AssertExpectations(t)
 }
 
-// TestCreatePost_UserNotFound: el userId no existe -> error
+// TestCreatePost_UserNotFound verifies creation fails when the given userId does not exist
 func TestCreatePost_UserNotFound(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockPostRepository)
@@ -71,13 +71,13 @@ func TestCreatePost_UserNotFound(t *testing.T) {
 	// ASSERT
 	assert.Error(t, err)
 	assert.Nil(t, post)
-	assert.Equal(t, "usuario no encontrado", err.Error())
+	assert.Equal(t, "user not found", err.Error())
 
 	mockUserRepo.AssertExpectations(t)
 	mockRepo.AssertNotCalled(t, "Create")
 }
 
-// TestCreatePost_RepoError: el repositorio falla al crear -> se propaga error
+// TestCreatePost_RepoError verifies the error is propagated when the repository fails to create the post
 func TestCreatePost_RepoError(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockPostRepository)
@@ -108,15 +108,15 @@ func TestCreatePost_RepoError(t *testing.T) {
 	mockUserRepo.AssertExpectations(t)
 }
 
-// TestCreatePost_TitleVacio: validación previa falla si title vacío
-func TestCreatePost_TitleVacio(t *testing.T) {
+// TestCreatePost_EmptyTitle verifies the pre-check fails when the title is empty
+func TestCreatePost_EmptyTitle(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockPostRepository)
 	mockUserRepo := new(mocks.MockUserRepository)
 	postService := services.NewPostService(mockRepo, mockUserRepo)
 
 	req := &models.CreatePostRequest{
-		Title:   "", // título vacío
+		Title:   "", // empty title
 		Content: "Contenido",
 	}
 
@@ -126,14 +126,14 @@ func TestCreatePost_TitleVacio(t *testing.T) {
 	// ASSERT
 	assert.Error(t, err)
 	assert.Nil(t, post)
-	assert.Equal(t, "el título es requerido", err.Error())
+	assert.Equal(t, "title is required", err.Error())
 	// No debe llamar al repo ni al userRepo
 	mockRepo.AssertNotCalled(t, "Create")
 	mockUserRepo.AssertNotCalled(t, "FindByID")
 }
 
-// TestCreatePost_ContentVacio: validación previa falla si content vacío
-func TestCreatePost_ContentVacio(t *testing.T) {
+// TestCreatePost_EmptyContent verifies the pre-check fails when the content is empty
+func TestCreatePost_EmptyContent(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockPostRepository)
 	mockUserRepo := new(mocks.MockUserRepository)
@@ -141,7 +141,7 @@ func TestCreatePost_ContentVacio(t *testing.T) {
 
 	req := &models.CreatePostRequest{
 		Title:   "Test Post",
-		Content: "", // content vacío
+		Content: "", // empty content
 	}
 
 	// ACT
@@ -150,13 +150,13 @@ func TestCreatePost_ContentVacio(t *testing.T) {
 	// ASSERT
 	assert.Error(t, err)
 	assert.Nil(t, post)
-	assert.Equal(t, "el contenido es requerido", err.Error())
+	assert.Equal(t, "content is required", err.Error())
 
 	mockRepo.AssertNotCalled(t, "Create")
 	mockUserRepo.AssertNotCalled(t, "FindByID")
 }
 
-// TestDeletePost_Success prueba eliminación exitosa por el autor
+// TestDeletePost_Success verifies the author can delete their own post
 func TestDeletePost_Success(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockPostRepository)
@@ -167,7 +167,7 @@ func TestDeletePost_Success(t *testing.T) {
 		ID:       1,
 		Title:    "Test Post",
 		Content:  "Content",
-		UserID:   1, // El autor es el usuario 1
+		UserID:   1, // The author is user 1
 		Username: "testuser",
 	}
 
@@ -175,7 +175,7 @@ func TestDeletePost_Success(t *testing.T) {
 	mockRepo.On("FindByID", 1).Return(existingPost, nil)
 	mockRepo.On("Delete", 1).Return(nil)
 
-	// ACT: El usuario 1 elimina su propio post
+	// ACT: User 1 deletes their own post
 	err := postService.DeletePost(1, 1)
 
 	// ASSERT
@@ -184,8 +184,8 @@ func TestDeletePost_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-// TestDeletePost_PostNoExiste prueba eliminar post inexistente
-func TestDeletePost_PostNoExiste(t *testing.T) {
+// TestDeletePost_PostNotFound verifies deletion fails when the post does not exist
+func TestDeletePost_PostNotFound(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockPostRepository)
 	mockUserRepo := new(mocks.MockUserRepository)
@@ -199,14 +199,14 @@ func TestDeletePost_PostNoExiste(t *testing.T) {
 
 	// ASSERT
 	assert.Error(t, err)
-	assert.Equal(t, "post no encontrado", err.Error())
+	assert.Equal(t, "post not found", err.Error())
 
-	// NO debe intentar eliminar
+	// Should NOT attempt to delete
 	mockRepo.AssertNotCalled(t, "Delete")
 }
 
-// TestDeletePost_NoEsAutor prueba que solo el autor puede eliminar
-func TestDeletePost_NoEsAutor(t *testing.T) {
+// TestDeletePost_NotTheAuthor verifies only the post's author can delete it
+func TestDeletePost_NotTheAuthor(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockPostRepository)
 	mockUserRepo := new(mocks.MockUserRepository)
@@ -216,25 +216,25 @@ func TestDeletePost_NoEsAutor(t *testing.T) {
 		ID:       1,
 		Title:    "Test Post",
 		Content:  "Content",
-		UserID:   1, // El autor es el usuario 1
+		UserID:   1, // The author is user 1
 		Username: "testuser",
 	}
 
 	mockRepo.On("FindByID", 1).Return(existingPost, nil)
 
-	// ACT: El usuario 2 intenta eliminar el post del usuario 1
+	// ACT: User 2 attempts to delete user 1's post
 	err := postService.DeletePost(1, 2)
 
 	// ASSERT
 	assert.Error(t, err)
-	assert.Equal(t, "no tienes permiso para eliminar este post", err.Error())
+	assert.Equal(t, "you do not have permission to delete this post", err.Error())
 
-	// NO debe llamar a Delete porque no tiene permiso
+	// Should NOT call Delete because they don't have permission
 	mockRepo.AssertNotCalled(t, "Delete")
 	mockRepo.AssertExpectations(t)
 }
 
-// TestDeleteComment_Success prueba eliminación exitosa por el autor
+// TestDeleteComment_Success verifies the author can delete their own comment
 func TestDeleteComment_Success(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockPostRepository)
@@ -259,7 +259,7 @@ func TestDeleteComment_Success(t *testing.T) {
 	mockUserRepo.On("FindByID", 1).Return(existingUser, nil)
 	mockRepo.On("DeleteComment", 1, 10, 1).Return(nil)
 
-	// ACT: El usuario 1 elimina su propio comentario
+	// ACT: User 1 deletes their own comment
 	err := postService.DeleteComment(1, 10, 1)
 
 	// ASSERT
@@ -268,8 +268,8 @@ func TestDeleteComment_Success(t *testing.T) {
 	mockUserRepo.AssertExpectations(t)
 }
 
-// TestDeleteComment_PostNoExiste prueba eliminar comentario en post inexistente
-func TestDeleteComment_PostNoExiste(t *testing.T) {
+// TestDeleteComment_PostNotFound verifies comment deletion fails when the parent post does not exist
+func TestDeleteComment_PostNotFound(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockPostRepository)
 	mockUserRepo := new(mocks.MockUserRepository)
@@ -283,14 +283,14 @@ func TestDeleteComment_PostNoExiste(t *testing.T) {
 
 	// ASSERT
 	assert.Error(t, err)
-	assert.Equal(t, "post no encontrado", err.Error())
+	assert.Equal(t, "post not found", err.Error())
 
-	// NO debe intentar eliminar
+	// Should NOT attempt to delete
 	mockRepo.AssertNotCalled(t, "DeleteComment")
 }
 
-// TestDeleteComment_UsuarioNoExiste prueba eliminar con usuario inexistente
-func TestDeleteComment_UsuarioNoExiste(t *testing.T) {
+// TestDeleteComment_UserNotFound verifies comment deletion fails when the requesting user does not exist
+func TestDeleteComment_UserNotFound(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockPostRepository)
 	mockUserRepo := new(mocks.MockUserRepository)
@@ -311,12 +311,12 @@ func TestDeleteComment_UsuarioNoExiste(t *testing.T) {
 
 	// ASSERT
 	assert.Error(t, err)
-	assert.Equal(t, "usuario no encontrado", err.Error())
+	assert.Equal(t, "user not found", err.Error())
 	mockRepo.AssertNotCalled(t, "DeleteComment")
 }
 
-// TestDeleteComment_NoEsAutor prueba que solo el autor puede eliminar su comentario
-func TestDeleteComment_NoEsAutor(t *testing.T) {
+// TestDeleteComment_NotTheAuthor verifies only the comment's author can delete it
+func TestDeleteComment_NotTheAuthor(t *testing.T) {
 	// ARRANGE
 	mockRepo := new(mocks.MockPostRepository)
 	mockUserRepo := new(mocks.MockUserRepository)
@@ -338,14 +338,14 @@ func TestDeleteComment_NoEsAutor(t *testing.T) {
 	mockRepo.On("FindByID", 1).Return(existingPost, nil)
 	mockUserRepo.On("FindByID", 2).Return(existingUser, nil)
 
-	// Usuario 2 intenta eliminar comentario del usuario 1
-	mockRepo.On("DeleteComment", 1, 10, 2).Return(errors.New("no tienes permiso para eliminar este comentario o no existe"))
+	// User 2 attempts to delete user 1's comment
+	mockRepo.On("DeleteComment", 1, 10, 2).Return(errors.New("you do not have permission to delete this comment or it does not exist"))
 
 	// ACT
 	err := postService.DeleteComment(1, 10, 2)
 
 	// ASSERT
 	assert.Error(t, err)
-	assert.Equal(t, "no tienes permiso para eliminar este comentario o no existe", err.Error())
+	assert.Equal(t, "you do not have permission to delete this comment or it does not exist", err.Error())
 	mockRepo.AssertExpectations(t)
 }

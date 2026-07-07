@@ -1,509 +1,321 @@
-# TP06 - Pruebas Unitarias
+# Forum App — CI Testing
 
-**Materia:** Ingeniería de Software 3  
-**Alumno:** Octavio Carpineti - Kevin Massholder  
-**Año:** 2025
+[![CI/CD Pipeline](https://github.com/CarpinetiOctavio/forum-app-ci-testing/actions/workflows/ci.yml/badge.svg)](https://github.com/CarpinetiOctavio/forum-app-ci-testing/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/github/license/CarpinetiOctavio/forum-app-ci-testing)](LICENSE)
 
-Mini red social con suite completa de pruebas unitarias (42 tests), mocking de dependencias externas y CI/CD automático.
+**Author:** Octavio Carpineti
+**Course:** Software Engineering III — Universidad Católica de Córdoba (UCC)
+**Year:** 2025
 
----
-
-## 📋 Tabla de Contenidos
-
-- [Tecnologías](#tecnologías)
-- [Arquitectura](#arquitectura)
-- [Funcionalidades](#funcionalidades)
-- [Prerequisitos](#prerequisitos)
-- [Instalación](#instalación)
-- [Ejecución](#ejecución)
-- [Testing](#testing)
-- [CI/CD](#cicd)
-- [Estructura del Proyecto](#estructura-del-proyecto)
+This is the first repository in a three-part series, each one adding exactly one
+layer of complexity on top of a foundation that is already fundamented and
+closed: **forum-app-ci-testing** (this repo) → [forum-app-qa-pipeline](https://github.com/CarpinetiOctavio/forum-app-qa-pipeline) → [forum-app-cloud-deploy](https://github.com/CarpinetiOctavio/forum-app-cloud-deploy).
 
 ---
 
-## 🛠️ Tecnologías
+## Table of Contents
 
-### Backend
-- **Go 1.21+**
-- **SQLite** (base de datos)
-- **Gorilla Mux** (routing)
-- **testify** (testing + mocking)
-
-### Frontend
-- **React 18** con **TypeScript**
-- **Axios** (HTTP client)
-- **Jest** + **React Testing Library** (testing)
-
-### DevOps
-- **GitHub Actions** (CI/CD)
-- **Docker** (futuro TP08)
-
----
-
-## 🏗️ Arquitectura
-
-```
-┌─────────────┐      HTTP      ┌──────────────┐
-│   Frontend  │ ←────────────→ │   Backend    │
-│   (React)   │                │     (Go)     │
-└─────────────┘                └──────────────┘
-                                       ↓
-                               ┌──────────────┐
-                               │   SQLite DB  │
-                               └──────────────┘
-```
-
-### Capas del Backend
-
-```
-Handlers     ← Controladores HTTP (reciben requests)
-    ↓
-Services     ← Lógica de negocio (validaciones, reglas)
-    ↓
-Repository   ← Acceso a datos (SQL)
-    ↓
-Database     ← SQLite
-```
-
-### Testing Strategy
-
-```
-PRODUCCIÓN                      TESTING
-─────────────────────────────────────────────────
-Repository (SQLite)       →     Mock Repository
-HTTP (axios)              →     Mock axios
-                          
-Resultado: Tests rápidos, aislados y reproducibles
-```
+1. [Why This Repository Exists](#why-this-repository-exists)
+2. [Scope — What This Repo Does and Deliberately Does Not Do](#scope--what-this-repo-does-and-deliberately-does-not-do)
+3. [App Description](#app-description)
+4. [Pipeline & Testing](#pipeline--testing)
+5. [Tech Stack](#tech-stack)
+6. [Prerequisites](#prerequisites)
+7. [Installation](#installation)
+8. [Running the Project](#running-the-project)
+9. [Running Tests](#running-tests)
+10. [Project Structure](#project-structure)
+11. [Documentation Approach](#documentation-approach)
+12. [Troubleshooting](#troubleshooting)
+13. [Metrics](#metrics)
 
 ---
 
-## ✨ Funcionalidades
+## Why This Repository Exists
 
-### Autenticación
-- ✅ Registro de usuarios
-- ✅ Login con email/password
-- ✅ Validaciones (email, password, username)
+The first thing worth asking about this series is not what each repository
+does — it's why the same forum app is spread across three of them instead of
+being built once. A single repository could have accumulated unit tests,
+coverage gates, static analysis, and a full deployment pipeline in one pass. It
+didn't, on purpose.
 
-### Posts
-- ✅ Crear post (título + contenido)
-- ✅ Listar todos los posts
-- ✅ Ver detalle de un post
-- ✅ Eliminar post (solo el autor)
+**At the level of the series:** each repository adds exactly one layer of
+complexity on top of a foundation that is already fundamented and closed
+before the next layer starts. `forum-app-qa-pipeline` does not get written
+until the testing discipline established here is complete and justified on its
+own terms. `forum-app-cloud-deploy` does not touch Docker or deployment until
+the coverage and quality gates in `qa-pipeline` are settled. Collapsing that
+into one repository would erase the evidence that each layer was a deliberate
+decision rather than a byproduct of momentum — and that evidence, not the
+pipeline mechanics, is what this series exists to show. A recruiter reading
+three repositories in sequence is meant to see the same question answered
+three times, at increasing scope: *what does this layer need, and why does it
+stop exactly here?*
 
-### Comentarios
-- ✅ Agregar comentario a un post
-- ✅ Listar comentarios
-- ✅ Eliminar comentario (solo el autor)
-
-### Reglas de Negocio (testeadas)
-- 🔒 Solo el autor puede eliminar su post
-- 🔒 Solo el autor puede eliminar su comentario
-- ✉️ Email debe ser válido y único
-- 🔑 Password mínimo 6 caracteres
-- 📝 Título de post mínimo 3 caracteres
+**At the level of this repository:** this is where that pattern is declared
+for the first time. Before any pipeline can be extended with coverage
+thresholds, static analysis, containers, or cloud deployment, there has to be
+a working, deliberately-scoped foundation of unit testing and CI automation
+that stands on its own reasoning — not one inherited from a course example,
+and not one borrowed from a later, more complex repository in this same
+series (see [ADR-000](docs/decisions/ADR-000-resolving-forward-not-mirroring-backward.md)).
+Every decision recorded in [`docs/decisions/`](docs/decisions/) here is
+grounded independently in software engineering fundamentals or in this
+repository's own scope — never in "the next repo already solved this." If this
+foundation isn't sound on its own terms, nothing built on top of it in
+`qa-pipeline` or `cloud-deploy` has a real base to stand on.
 
 ---
 
-## 📦 Prerequisitos
+## Scope — What This Repo Does and Deliberately Does Not Do
 
-### Instalación de Herramientas
+This repository automates unit testing for a Go backend and a React frontend
+with GitHub Actions, scoped specifically to the **Services layer** — the only
+layer in this application that holds business rules and validation logic
+worth discriminating with a unit test. `Repository` (SQL execution),
+`Handlers` (HTTP translation), and most frontend components are deliberately
+untested at the unit level here — not because they were skipped, but because
+none of them branch on a business rule the way `AuthService` and
+`PostService` do. See
+[ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md) for the full
+reasoning behind exactly which units earned a unit test and which didn't.
 
-#### Go (Backend)
+The pipeline runs both test suites on every push and pull request, reports
+coverage as a downloadable artifact, and enforces **no minimum coverage
+threshold**. That is not an oversight — a coverage gate is the declared
+responsibility of `forum-app-qa-pipeline`, the next repository in this series.
+Adding one here would silently absorb a decision that belongs to that repo,
+and would erase the reason `qa-pipeline` needs to exist at all. See
+[ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md) for the pipeline's full
+design, including a coverage-measurement bug found and fixed during this
+project's own documentation review.
+
+---
+
+## App Description
+
+The application under test is a small forum: users register and log in,
+create and delete posts, and comment on posts — with one enforced business
+rule running through both layers: only the author of a post or comment may
+delete it. The app itself is the context for the testing problem this repo
+solves, not the point of the repo.
+
+---
+
+## Pipeline & Testing
+
+![CI pipeline flow](docs/diagrams/ci-pipeline-flow.svg)
+
+The diagram shows the actual structure of `.github/workflows/ci.yml`: backend
+and frontend tests run in parallel, each gates its own build job, and a final
+summary job reports overall status — with no coverage gate and no external
+reporting service (see [ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md)).
+
+![Branching model](docs/diagrams/branching-model.svg)
+
+The pipeline runs as a required check on pull requests into `staging` and
+`main`, not on push to `main` — so a failing gate blocks a merge instead of
+being discovered after the fact. See
+[ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md) for why this model
+replaced an earlier one where the pipeline only verified code already merged.
+
+![Pipeline passing](docs/screenshots/01-pipeline-passing.png)
+
+*All five jobs green on a real push — evidence the automation described above
+actually runs, not just that it's configured to.*
+
+![Backend coverage](docs/screenshots/backend-coverage.png)
+
+*Terminal output of the backend coverage command, showing 54.1% measured
+against `internal/services` — the one number this README cites that a reader
+can independently reproduce by running the same command.*
+
+![Frontend tests passing](docs/screenshots/frontend-tests-passing.png)
+
+*All 34 frontend tests passing locally — the same result the pipeline itself
+produces on every push.*
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Backend | Go 1.24 + SQLite |
+| Frontend | React 19 + TypeScript |
+| Backend testing | Go `testing` + testify (assert + mock) |
+| Frontend testing | Jest + React Testing Library |
+| CI/CD | GitHub Actions |
+
+---
+
+## Prerequisites
+
 ```bash
-# Verificar instalación
-go version  # Debe ser 1.21+
-
-# Si no está instalado: https://go.dev/dl/
-```
-
-#### Node.js (Frontend)
-```bash
-# Verificar instalación
-node --version  # Debe ser 18+
+go version     # 1.24 or higher
+node --version # 18 or higher
 npm --version
-
-# Si no está instalado: https://nodejs.org/
 ```
 
-#### Git
-```bash
-git --version
+This repository needs no external infrastructure — no cloud account, no
+container registry, no secrets. Full setup detail, including why that's true,
+is in [`docs/SETUP.md`](docs/SETUP.md).
 
-# Si no está instalado: https://git-scm.com/
+---
+
+## Installation
+
+```bash
+git clone https://github.com/CarpinetiOctavio/forum-app-ci-testing.git
+cd forum-app-ci-testing
+
+cd backend && go mod download && cd ..
+cd frontend && npm install && cd ..
 ```
 
 ---
 
-## 🚀 Instalación
-
-### 1. Clonar el repositorio
+## Running the Project
 
 ```bash
-git clone https://github.com/TU-USUARIO/tp06-testing.git
-cd tp06-testing
-```
+# Terminal 1 — backend
+cd backend && go run cmd/api/main.go
+# http://localhost:8080
 
-### 2. Instalar dependencias del Backend
-
-```bash
-cd backend
-go mod download
-```
-
-### 3. Instalar dependencias del Frontend
-
-```bash
-cd ../frontend
-npm install
+# Terminal 2 — frontend
+cd frontend && npm start
+# http://localhost:3000
 ```
 
 ---
 
-## ▶️ Ejecución
+## Running Tests
 
-### Opción A: Ejecutar Backend y Frontend por separado
-
-#### Terminal 1 - Backend
 ```bash
+# Backend
 cd backend
-go run cmd/api/main.go
-```
+go test ./tests/services/... -v -cover -coverpkg=./internal/services/...
+# 23/23 pass, 54.1% coverage
 
-Deberías ver:
-```
-Base de datos inicializada correctamente
-🚀 Servidor corriendo en http://localhost:8080
-```
-
-#### Terminal 2 - Frontend
-```bash
+# Frontend
 cd frontend
-npm start
+npm test -- --coverage --watchAll=false
+# 34/34 pass
 ```
 
-Se abrirá automáticamente en: `http://localhost:3000`
+54.1% is measured exclusively against `internal/services` — the entire
+declared testing scope of this repository, not a partial view of it. See
+[ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md) for why that
+scope excludes `Repository` and `Handlers`.
 
-### Opción B: Script para ejecutar ambos (Linux/Mac)
-
-```bash
-# Crear script
-cat > run.sh << 'EOF'
-#!/bin/bash
-cd backend && go run cmd/api/main.go &
-BACKEND_PID=$!
-cd ../frontend && npm start
-kill $BACKEND_PID
-EOF
-
-chmod +x run.sh
-./run.sh
-```
+The full command reference — including single-test runs, HTML coverage
+reports, and three manual checks that verify the mocking strategy actually
+isolates tests from the database and the network — is in
+[`docs/COMMANDS.md`](docs/COMMANDS.md).
 
 ---
 
-## 🧪 Testing
-
-### Backend Tests (Go)
-
-```bash
-cd backend
-
-# Ejecutar todos los tests
-go test ./tests/services/... -v
-
-# Con cobertura
-go test ./tests/services/... -v -cover
-
-# Solo un test específico
-go test ./tests/services/ -v -run TestRegister_Success
-```
-
-**Resultado esperado:**
-```
-=== RUN   TestRegister_Success
---- PASS: TestRegister_Success (0.00s)
-...
-PASS
-ok      tp06-testing/tests/services     0.582s
-```
-
-**Total: 23 tests** ✅
-
-### Frontend Tests (React)
-
-```bash
-cd frontend
-
-# Ejecutar todos los tests
-npm test
-
-# Con cobertura
-npm test -- --coverage
-
-# Sin modo watch
-npm test -- --watchAll=false
-```
-
-**Resultado esperado:**
-```
-PASS  src/components/Login/Login.test.tsx
-PASS  src/components/PostList/PostList.test.tsx
-PASS  src/components/CommentList/CommentList.test.tsx
-PASS  src/services/authService.test.ts
-
-Test Suites: 4 passed, 4 total
-Tests:       19 passed, 19 total
-```
-
-**Total: 19 tests** ✅
-
-### Ejecutar TODOS los tests (Backend + Frontend)
-
-```bash
-# Desde la raíz del proyecto
-cd backend && go test ./... && cd ../frontend && npm test -- --watchAll=false
-```
-
----
-
-## 🔄 CI/CD
-
-### GitHub Actions
-
-El proyecto incluye un pipeline de CI/CD que se ejecuta automáticamente en cada push.
-
-**Archivo:** `.github/workflows/ci.yml`
-
-**Workflow:**
-1. ✅ **Backend Tests** - Ejecuta `go test`
-2. ✅ **Frontend Tests** - Ejecuta `npm test`
-3. ✅ **Backend Build** - Compila con `go build`
-4. ✅ **Frontend Build** - Compila con `npm run build`
-5. ✅ **Summary** - Resumen final
-
-**Ver resultados:**
-1. Ir a: `https://github.com/TU-USUARIO/tp06-testing/actions`
-2. Seleccionar el workflow más reciente
-3. Ver logs detallados de cada job
-
----
-
-## 📁 Estructura del Proyecto
+## Project Structure
 
 ```
-tp06-testing/
+forum-app-ci-testing/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml                   # Pipeline CI/CD
-│
+│       └── ci.yml                       # CI/CD pipeline (see ADR-004)
 ├── backend/
-│   ├── cmd/api/
-│   │   └── main.go                  # Punto de entrada
+│   ├── cmd/api/main.go                  # Server entry point
 │   ├── internal/
-│   │   ├── database/
-│   │   │   └── database.go          # Inicialización SQLite
-│   │   ├── models/                  # Structs (User, Post, Comment)
-│   │   ├── repository/              # Acceso a datos
-│   │   │   ├── user_repository.go
-│   │   │   └── post_repository.go
-│   │   ├── services/                # Lógica de negocio
-│   │   │   ├── auth_service.go
-│   │   │   └── post_service.go
-│   │   ├── handlers/                # Controladores HTTP
-│   │   │   ├── auth_handler.go
-│   │   │   └── post_handler.go
-│   │   └── router/
-│   │       └── router.go            # Rutas
+│   │   ├── database/                    # SQLite schema and connection
+│   │   ├── handlers/                    # HTTP handlers — not unit-tested (ADR-002)
+│   │   ├── models/                      # Data structures
+│   │   ├── repository/                  # Data access — not unit-tested (ADR-002)
+│   │   ├── router/                      # Route configuration
+│   │   └── services/                    # Business logic — the tested layer
 │   ├── tests/
-│   │   ├── mocks/                   # Repositorios mockeados
-│   │   │   ├── user_repository_mock.go
-│   │   │   └── post_repository_mock.go
-│   │   └── services/                # Tests unitarios
-│   │       ├── auth_service_test.go
-│   │       └── post_service_test.go
+│   │   ├── mocks/                       # Repository test doubles
+│   │   └── services/                    # 23 unit tests
 │   ├── go.mod
-│   └── database.db                  # SQLite (generado automáticamente)
-│
+│   └── go.sum
 ├── frontend/
-│   ├── public/
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── Login/
-│   │   │   │   ├── Login.tsx
-│   │   │   │   ├── Login.test.tsx
-│   │   │   │   └── Login.css
-│   │   │   ├── PostList/
-│   │   │   │   ├── PostList.tsx
-│   │   │   │   ├── PostList.test.tsx
-│   │   │   │   └── PostList.css
-│   │   │   ├── CreatePost/
-│   │   │   ├── CommentList/
-│   │   │   │   ├── CommentList.tsx
-│   │   │   │   ├── CommentList.test.tsx
-│   │   │   │   └── CommentList.css
-│   │   │   ├── CommentForm/
-│   │   │   └── PostDetail/
-│   │   ├── services/
-│   │   │   ├── authService.ts
-│   │   │   ├── authService.test.ts
-│   │   │   └── postService.ts
-│   │   ├── __mocks__/
-│   │   │   └── axios.ts             # Mock de HTTP
-│   │   ├── types/
-│   │   │   └── index.ts             # TypeScript types
-│   │   ├── App.tsx
-│   │   └── setupTests.ts
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── README.md                        # Este archivo
-└── decisiones.md                    # Documentación técnica
+│   │   ├── components/                  # Login, PostList, CommentList tested;
+│   │   │                                #   CreatePost, CommentForm, PostDetail not (ADR-002)
+│   │   ├── services/                    # authService (5 tests) + postService (14 tests)
+│   │   └── __mocks__/axios.ts           # HTTP test double
+│   └── package.json
+├── docs/
+│   ├── decisions/                       # ADR-000 through ADR-007
+│   ├── diagrams/ci-pipeline-flow.svg
+│   ├── screenshots/                     # pipeline-passing, backend-coverage, frontend-tests-passing
+│   ├── rules/                           # AI assistant operating rules
+│   ├── SETUP.md
+│   └── COMMANDS.md
+├── CLAUDE.md                            # AI assistant operating context
+├── LICENSE
+└── README.md
 ```
 
 ---
 
-## 📊 Cobertura de Tests
+## Documentation Approach
 
-### Backend (23 tests)
+This project was developed with Claude (Anthropic) as an AI assistant, under
+an explicit constraint: Claude acts as a conceptual auditor and writing
+assistant — never as the decision-maker for test design, mocking strategy, or
+scope boundaries. Every design decision recorded in this repository was made
+by Octavio Carpineti; Claude's role was surfacing inconsistencies, grounding
+proposed resolutions in software engineering fundamentals, and drafting the
+documentation itself for review. `CLAUDE.md` states this constraint explicitly
+and defines the initialization protocol any assistant session follows before
+touching a file.
 
-| Componente  | Tests |                 Descripción                     |
-|-------------|-------|-------------------------------------------------|
-| AuthService | 11    | Register (6), Login (5)                         |
-| PostService | 12    | CreatePost (5), DeletePost (3), DeleteComment(4)|
+`docs/decisions/` holds eight ADRs, each grounded independently rather than
+copied from a later repository in this series (see
+[ADR-000](docs/decisions/ADR-000-resolving-forward-not-mirroring-backward.md)):
 
-### Frontend (19 tests)
+| ADR | Covers |
+|---|---|
+| [000](docs/decisions/ADR-000-resolving-forward-not-mirroring-backward.md) | Why this repo's decisions are grounded independently, never mirrored from `cloud-deploy` |
+| [001](docs/decisions/ADR-001-stack-choice.md) | Why Go + React over the course's .NET/Angular example |
+| [002](docs/decisions/ADR-002-testing-scope-services-layer.md) | Why only the Services layer is unit-tested |
+| [003](docs/decisions/ADR-003-mocking-strategy.md) | Why Repository and axios are mocked, and nothing else is |
+| [004](docs/decisions/ADR-004-ci-pipeline-design.md) | CI pipeline design: trigger, coverage as artifact, no gate — plus a coverage-measurement bug found and fixed |
+| [005](docs/decisions/ADR-005-package-lock-incident.md) | A `package-lock.json` desync incident, reconstructed from git history |
+| [006](docs/decisions/ADR-006-test-name-translation.md) | Why test names were translated to English, and why that differs from `cloud-deploy`'s equivalent decision |
+| [007](docs/decisions/ADR-007-application-language.md) | Why the application's own UI text and error messages are in English, not just its documentation |
 
-| Componente | Tests |            Descripción             |
-|------------|-------|------------------------------------|
-| Login      | 5     | Renderizado, validaciones, estados |
-| PostList   | 5     | Renderizado, eliminación, permisos |
-| CommentList| 5     | Renderizado, eliminación, permisos |
-| authService| 4     | Login/Register con mocks HTTP      |
-
-**Total: 42 tests automatizados** ✅
-
----
-
-## 🎯 Conceptos Implementados
-
-### Testing
-- ✅ **Pruebas Unitarias** (backend + frontend)
-- ✅ **Patrón AAA** (Arrange, Act, Assert)
-- ✅ **Mocking** (Repository + HTTP)
-- ✅ **Aislamiento** de dependencias
-- ✅ **Casos edge** y validaciones
-
-### Arquitectura
-- ✅ **Separación de concerns** (capas)
-- ✅ **Dependency Injection** (interfaces)
-- ✅ **Repository Pattern**
-- ✅ **RESTful API**
-
-### DevOps
-- ✅ **CI/CD** con GitHub Actions
-- ✅ **Automatización** de tests
-- ✅ **Build automático**
+`docs/rules/` defines the operating rules an assistant follows in this
+repository — what's in scope, what naming and testing conventions apply, and
+what requires explicit approval before being written.
 
 ---
 
-## 🔍 Comandos Útiles
+## Troubleshooting
 
-### Backend
-```bash
-# Compilar
-go build ./...
+**`npm ci` fails in CI with a lockfile mismatch:**
+see [ADR-005](docs/decisions/ADR-005-package-lock-incident.md) and
+[`docs/COMMANDS.md`](docs/COMMANDS.md#troubleshooting) for the fix.
 
-# Tests
-go test ./...
-
-# Tests con detalle
-go test ./tests/services/... -v
-
-# Limpiar base de datos
-rm backend/database.db
-```
-
-### Frontend
-```bash
-# Desarrollo
-npm start
-
-# Tests
-npm test
-
-# Build producción
-npm run build
-
-# Limpiar node_modules
-rm -rf node_modules && npm install
-```
-
-### Git
-```bash
-# Status
-git status
-
-# Commit
-git add .
-git commit -m "mensaje"
-
-# Push
-git push origin main
-```
+**Backend won't start (port in use), frontend dependencies are stale, or
+backend tests fail after a fresh clone:** all three are documented with the
+exact commands in [`docs/COMMANDS.md`](docs/COMMANDS.md#troubleshooting).
 
 ---
 
-## 📚 Documentación Adicional
+## Metrics
 
-- **[decisiones.md](./decisiones.md)** - Decisiones técnicas y justificaciones
-- **[backend/tests/desc.md](./backend/tests/desc.md)** - Explicación de tests backend
-- **[backend/internal/database/desc.md](./backend/internal/database/desc.md)** - Explicación de base de datos
-- **[frontend/src/services/desc.md](./frontend/src/services/desc.md)** - Explicación de servicios HTTP
-
----
-
-## 🐛 Troubleshooting
-
-### El backend no arranca
-```bash
-# Verificar que no esté corriendo en otro lado
-lsof -i :8080
-kill -9 PID_DEL_PROCESO
-
-# Verificar dependencias
-cd backend
-go mod tidy
-```
-
-### El frontend no arranca
-```bash
-# Reinstalar dependencias
-cd frontend
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### Los tests fallan
-```bash
-# Backend: Verificar que no dependa de BD
-rm backend/database.db
-go test ./tests/services/... -v  # Deben pasar igual
-
-# Frontend: Limpiar cache de Jest
-npm test -- --clearCache
-npm test
-```
-
-### CORS errors
-Verificar que el backend tenga el middleware CORS configurado en `router/router.go`
+| Metric | Result | Notes |
+|--------|--------|-------|
+| Backend unit tests | 23/23 | AuthService (11) + PostService (12) |
+| Frontend unit tests | 36/36 | authService (5) + postService (14) + Login (7) + PostList (7) + CommentList (5) |
+| Total tests | 59 | — |
+| Backend coverage | 54.1% | `internal/services` only — 100% of declared scope (see [ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md)) |
+| Frontend coverage | 50.24% (all files) | Files outside declared scope included in this aggregate; tested files individually: 86–100% (see [ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md)) |
 
 ---
 
-## 👥 Autores:
-**Carpineti Octavio - Kevin Massholder**  
-Ingenieria en sistemas de informacion - UCC
-Materia: Ingeniería de Software 3  
-Año: 2025
+**Author:** Octavio Carpineti
+**GitHub:** https://github.com/CarpinetiOctavio
+**Repository:** https://github.com/CarpinetiOctavio/forum-app-ci-testing
 
+The next step in this series is [forum-app-qa-pipeline](https://github.com/CarpinetiOctavio/forum-app-qa-pipeline), which builds on this foundation by adding static analysis, a coverage gate, and end-to-end tests — none of which belong here, and all of which depend on this base being solid first.
