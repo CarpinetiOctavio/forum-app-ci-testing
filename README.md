@@ -114,26 +114,58 @@ reporting service (see [ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md)).
 ![Branching model](docs/diagrams/branching-model.svg)
 
 The pipeline runs as a required check on pull requests into `staging` and
-`main`, not on push to `main` — so a failing gate blocks a merge instead of
-being discovered after the fact. See
-[ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md) for why this model
-replaced an earlier one where the pipeline only verified code already merged.
+`main` — so a failing gate blocks a merge instead of being discovered after
+the fact. Direct push to either branch is blocked by branch protection rules.
+See [ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md) for why this model
+replaced the original push-to-main trigger.
 
-![Pipeline passing](docs/screenshots/01-pipeline-passing.png)
+![Pipeline passing](docs/screenshots/01-pipeline-passing-main.png)
 
-*All five jobs green on a real push — evidence the automation described above
-actually runs, not just that it's configured to.*
+*All five jobs green on the PR staging→main — evidence that the pipeline runs
+as a preventive gate, not post-hoc verification.*
 
-![Backend coverage](docs/screenshots/backend-coverage.png)
+![Branch protection gate on staging](docs/screenshots/02-branch-protection-gate-staging.png)
 
-*Terminal output of the backend coverage command, showing 54.1% measured
-against `internal/services` — the one number this README cites that a reader
-can independently reproduce by running the same command.*
+*Merging blocked on staging until required checks pass — the gate enforced
+before code reaches any shared branch.*
 
-![Frontend tests passing](docs/screenshots/frontend-tests-passing.png)
+![Branch protection gate on main](docs/screenshots/03-branch-protection-gate-main.png)
 
-*All 34 frontend tests passing locally — the same result the pipeline itself
-produces on every push.*
+*Same gate on main — nothing reaches the stable branch without passing the
+full pipeline.*
+
+![Branch protection blocked on staging](docs/screenshots/04-branch-protection-blocked-staging.png)
+
+*Terminal output showing a direct push to staging rejected by GitHub —
+evidence the policy is enforced at the protocol level, not just in the UI.*
+
+![Branch protection blocked on main](docs/screenshots/05-branch-protection-blocked-main.png)
+
+*Same rejection for a direct push to main.*
+
+![Backend tests passing](docs/screenshots/06-backend-tests-passing.png)
+
+*Terminal output of `go test ./tests/services/... -v` — 23/23 passing.*
+
+![Backend coverage](docs/screenshots/07-backend-coverage.png)
+
+*Terminal output showing 54.1% coverage measured against `internal/services`
+— the declared scope of this repo (see ADR-002).*
+
+![Frontend tests passing](docs/screenshots/08-frontend-tests-passing.png)
+
+*Terminal output of `npm test -- --coverage --watchAll=false` — 36/36
+passing across 5 suites.*
+
+![Git history before branching](docs/screenshots/09-git-history-before-branching.png)
+
+*Linear commit history on main before the branching model was adopted —
+all commits on a single line, no branches.*
+
+![Git history after branching](docs/screenshots/10-git-history-after-branching.png)
+
+*Full branch tree after adopting feature→staging→main, with merge commits
+from all PRs visible.*
 
 ---
 
@@ -246,7 +278,7 @@ forum-app-ci-testing/
 ├── docs/
 │   ├── decisions/                       # ADR-000 through ADR-007
 │   ├── diagrams/ci-pipeline-flow.svg
-│   ├── screenshots/                     # pipeline-passing, backend-coverage, frontend-tests-passing
+│   ├── screenshots/                     # 10 evidence screenshots (pipeline, branch protection, coverage, git history)
 │   ├── rules/                           # AI assistant operating rules
 │   ├── SETUP.md
 │   └── COMMANDS.md
@@ -304,13 +336,13 @@ exact commands in [`docs/COMMANDS.md`](docs/COMMANDS.md#troubleshooting).
 
 ## Metrics
 
-| Metric | Result | Notes |
-|--------|--------|-------|
-| Backend unit tests | 23/23 | AuthService (11) + PostService (12) |
-| Frontend unit tests | 36/36 | authService (5) + postService (14) + Login (7) + PostList (7) + CommentList (5) |
-| Total tests | 59 | — |
-| Backend coverage | 54.1% | `internal/services` only — 100% of declared scope (see [ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md)) |
-| Frontend coverage | 50.24% (all files) | Files outside declared scope included in this aggregate; tested files individually: 86–100% (see [ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md)) |
+| Metric | Result             | Notes |
+|--------|--------------------|-------|
+| Backend unit tests | 23/23              | AuthService (11) + PostService (12) |
+| Frontend unit tests | 36/36              | authService (5) + postService (14) + Login (7) + PostList (7) + CommentList (5) |
+| Total tests | 59                 | — |
+| Backend coverage | 54.1%              | `internal/services` only — 100% of declared scope (see [ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md)) |
+| Frontend coverage | 52.19% (all files) | Files outside declared scope included in this aggregate; tested files individually: 86–100% (see [ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md)) |
 
 ---
 
