@@ -13,16 +13,16 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.0
       
       - name: Setup Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v6.2.0
         with:
           go-version: '1.24'
           cache: false
 
       - name: Cache Go modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5.0.0
         with:
           path: |
             ~/go/pkg/mod
@@ -39,7 +39,7 @@ jobs:
           go test ./tests/services/... -v -coverprofile=coverage.out -coverpkg=./internal/services/...
 
       - name: Upload backend coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: backend-coverage
           path: backend/coverage.out
@@ -51,15 +51,16 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.0
       
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5.0.0
         with:
           node-version: '18'
+          package-manager-cache: false
 
       - name: Cache Node modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5.0.0
         with:
           path: frontend/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
@@ -75,7 +76,7 @@ jobs:
         run: npm test -- --coverage --watchAll=false
 
       - name: Upload frontend coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: frontend-coverage
           path: frontend/coverage
@@ -88,10 +89,10 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.0
       
       - name: Setup Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v6.2.0
         with:
           go-version: '1.24'
           cache: false
@@ -107,15 +108,16 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.0
       
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5.0.0
         with:
           node-version: '18'
+          package-manager-cache: false
       
       - name: Cache Node modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5.0.0
         with:
           path: frontend/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
