@@ -164,15 +164,21 @@ full pipeline.*
 *Terminal output of `npm test -- --coverage --watchAll=false` — 36/36
 passing across 5 suites.*
 
-![Git history before branching](docs/screenshots/09-git-history-before-branching.png)
+![Git history before branching model](docs/screenshots/09-git-history-before-branching.png)
 
-*Linear commit history on main before the branching model was adopted —
-all commits on a single line, no branches.*
+*Linear commit history before the branching model was adopted —
+all commits on a single line directly on main, no branches.*
 
-![Git history after branching](docs/screenshots/10-git-history-after-branching.png)
+![Git history after branching model — recent](docs/screenshots/10a-git-history-after-branching-top.png)
 
-*Full branch tree after adopting feature→staging→main, with merge commits
-from all PRs visible.*
+*Full branch tree after adopting feature→staging→main — top half
+showing recent merge commits from all PRs into staging and main.*
+
+![Git history after branching model — origin](docs/screenshots/10b-git-history-after-branching-bottom.png)
+
+*Bottom half showing the point where the new model started
+(refactor commit a7dd683) and the original linear history from
+October 2025 below it — the full before/after visible in one tree.*
 
 ---
 
