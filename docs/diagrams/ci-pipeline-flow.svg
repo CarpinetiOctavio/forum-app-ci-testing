@@ -3,11 +3,8 @@
 
   <!-- Trigger -->
   <rect x="270" y="20" width="280" height="55" rx="8" fill="#eef2ff" stroke="#4338ca" stroke-width="1.5"/>
-  <text x="410" y="45" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1b4b">push / pull_request</text>
-  <text x="410" y="63" text-anchor="middle" font-size="12" fill="#4338ca">main · master · develop</text>
-
-  <!-- Arrow trigger -> tests -->
-  <line x1="410" y1="75" x2="410" y2="110" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="410" y="45" text-anchor="middle" font-size="14" font-weight="600" fill="#1e1b4b">push to feature/** · PR to staging or main</text>
+  <text x="410" y="63" text-anchor="middle" font-size="12" fill="#4338ca">pipeline runs as gate before merge</text>
 
   <!-- Backend Tests -->
   <rect x="60" y="110" width="300" height="70" rx="8" fill="#ecfdf5" stroke="#047857" stroke-width="1.5"/>
@@ -48,7 +45,8 @@
   <text x="410" y="356" text-anchor="middle" font-size="14" font-weight="600" fill="#111827">Summary</text>
   <text x="410" y="374" text-anchor="middle" font-size="11" fill="#374151">if: always() — reports final status</text>
 
-  <text x="410" y="430" text-anchor="middle" font-size="11" fill="#6b7280">No coverage gate, no SonarCloud, no Docker, no deploy — out of scope for this repo (see docs/rules/testing.md, ADR-002, ADR-004)</text>
+  <text x="410" y="424" text-anchor="middle" font-size="11" fill="#6b7280">No coverage gate · no SonarCloud · no Docker · no deploy — scope boundary of this repo (ADR-002, ADR-004).</text>
+  <text x="410" y="438" text-anchor="middle" font-size="11" fill="#6b7280">Branching model: feature/** → staging → main (see ADR-004)</text>
 
   <defs>
     <marker id="arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">

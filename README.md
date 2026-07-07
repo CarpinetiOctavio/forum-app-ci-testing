@@ -111,6 +111,14 @@ and frontend tests run in parallel, each gates its own build job, and a final
 summary job reports overall status — with no coverage gate and no external
 reporting service (see [ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md)).
 
+![Branching model](docs/diagrams/branching-model.svg)
+
+The pipeline runs as a required check on pull requests into `staging` and
+`main`, not on push to `main` — so a failing gate blocks a merge instead of
+being discovered after the fact. See
+[ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md) for why this model
+replaced an earlier one where the pipeline only verified code already merged.
+
 ![Pipeline passing](docs/screenshots/01-pipeline-passing.png)
 
 *All five jobs green on a real push — evidence the automation described above
