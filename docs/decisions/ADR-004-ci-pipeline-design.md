@@ -189,6 +189,6 @@ Adopt a three-branch model: `feature/* → staging (PR) → main (PR)`.
   `ci.yml` or in Git itself stops a direct `git push origin main` — that
   requires a branch protection rule configured on the GitHub repository
   itself (Settings → Branches: require a pull request before merging,
-  require the pipeline as a passing status check), which is **pending
-  manual configuration by Octavio** and is out of scope for what a workflow
+  require the pipeline as a passing status check), which is **now
+  configured on GitHub for `main`** and is out of scope for what a workflow
   file or a local git command can do.
