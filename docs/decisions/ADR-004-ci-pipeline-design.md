@@ -105,6 +105,14 @@ gate.
   design (see rationale above); catching a silently-broken measurement
   depends on periodically inspecting what the artifact actually contains,
   which is what surfaced this one.
+- **The 54.1% figure above is a point-in-time verification record, not a
+  living number.** It documents what was true when this ADR's `-coverpkg`
+  fix was verified, the same way `git blame` documents authorship at a
+  commit — it is deliberately not updated as the suite changes afterward.
+  The actual current coverage differs following ADR-008's security
+  hardening (55.2%, one new test added); see the README's Metrics table
+  for the current figure, or run the command in `docs/COMMANDS.md`
+  directly.
 
 ## Branching model correction: from post-hoc verification to preventive gate
 
@@ -202,3 +210,125 @@ Adopt a three-branch model: `feature/* → staging (PR) → main (PR)`.
   predates it, not the one it's introducing. Once that PR merged, `staging`
   carried the updated workflow, and the following PR (`staging` → `main`)
   ran correctly as a preventive gate.
+
+## Second correction: the `summary` job never actually checked what it summarized
+
+### Context
+While configuring a GitHub ruleset to require status checks on `staging`/
+`main` (replacing classic branch protection — see ADR-010 for that
+migration itself, which does not change the branching model this ADR
+already established, only the GitHub mechanism enforcing it), the obvious
+candidate for the required check was `summary` (`name: Test Summary`), the
+job that prints the pipeline's final result. Reading the job in full,
+not just its name, surfaced a real defect:
+
+```yaml
+summary:
+  name: Test Summary
+  needs: [backend-tests, frontend-tests, backend-build, frontend-build]
+  if: always()
+  steps:
+    - name: Check results
+      run: |
+        echo "Pipeline Summary:"
+        echo "✓ Backend Tests"
+        echo "✓ Frontend Tests"
+        echo "✓ Backend Build"
+        echo "✓ Frontend Build"
+```
+
+`if: always()` makes this job run even when a job it depends on failed.
+The "Check results" step never inspected the outcome of any of them — four
+fixed `echo` lines, no `if` on `needs.*.result`, no conditional `exit`. The
+job always succeeded, printing all four checkmarks, regardless of whether
+`backend-tests` (or any other dependency) actually failed.
+
+**This is not a regression introduced anywhere in this series.** Verified
+with `git log --follow -p -- .github/workflows/ci.yml`: this exact job —
+`if: always()` plus the same four unconditional `echo` lines — was
+introduced in this repository's very first commit, `7ed7b94` (2025-10-14,
+"Proyecto completo: backend + frontend + tests"), as the code the course
+handed out for TP6, before this was a portfolio and before the repository
+was even named `forum-app-ci-testing`. No commit since — not the Node.js
+version bump, not the Actions-version fixes, not the adoption of the
+`feature → staging → main` model earlier in this ADR, not the full
+portfolio rebuild — ever touched this job. It sat unexamined through every
+pass that came after it, until reading it end-to-end for an unrelated
+reason (choosing a required check for the ruleset) surfaced it.
+
+**This is the same failure pattern this ADR already documented once, one
+layer down, not a coincidence.** The Consequences section above already
+describes the backend coverage command silently uploading a meaningless
+`[no statements]` artifact for an unknown number of runs, undetected
+because nothing checked the *content* of what a successful step produced
+— only whether the step itself completed. This is that same audit
+question, asked of the layer directly above it: nothing checked the
+*result* of the jobs a successful step depended on — only whether the step
+itself completed. Both bugs share one root shape: a step reports success
+because no real failure case had ever exercised its failure path, not
+because the step was actually verified to detect one. The first instance
+was found by inspecting what an artifact actually contained instead of
+trusting that the step ran. This one was found the same way — by reading
+what a job actually did instead of trusting its name and its green
+checkmark.
+
+### Decision
+Keep `if: always()` — the summary should still run and print its report
+even when something upstream failed, for visibility — but make the job's
+own outcome depend on its dependencies' real results:
+
+```yaml
+summary:
+  name: Test Summary
+  runs-on: ubuntu-latest
+  needs: [backend-tests, frontend-tests, backend-build, frontend-build]
+  if: always()
+
+  steps:
+    - name: Check results
+      run: |
+        echo "Pipeline Summary:"
+        echo "Backend Tests: ${{ needs.backend-tests.result }}"
+        echo "Frontend Tests: ${{ needs.frontend-tests.result }}"
+        echo "Backend Build: ${{ needs.backend-build.result }}"
+        echo "Frontend Build: ${{ needs.frontend-build.result }}"
+
+    - name: Fail if any dependency failed or was cancelled
+      if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+      run: exit 1
+```
+
+### Alternatives considered
+- **Replace `if: always()` with a job-level condition** (e.g.
+  `if: needs.backend-tests.result == 'success' && ...`), letting the job
+  itself not run at all when something failed. Rejected: when a job's own
+  `if` evaluates to `false`, GitHub Actions marks it **`skipped`**, not
+  `failure`. A required status check that reports `skipped` instead of
+  `failure` is exactly the kind of ambiguity a ruleset migration
+  undertaken for real cost-benefit reasons should not introduce back in at
+  the same time — the explicit `exit 1` in the decision above guarantees
+  an unambiguous `failure` result regardless of which mechanism
+  (classic branch protection or a ruleset) is the one interpreting it.
+- **Leave `summary` as an informational-only job and require the four
+  individual checks instead** (`Backend Tests (Go)`, `Frontend Tests
+  (React)`, `Backend Build`, `Frontend Build`) on the ruleset. This is the
+  interim measure already in place while this fix was pending — viable
+  long-term too, but it sidesteps the bug rather than fixing it, and a
+  single consolidated required check remains simpler to reason about for
+  anyone configuring branch protection later. Once this fix lands, whether
+  to point the ruleset back at the single `summary` check or keep the four
+  individual ones is a separate, later decision.
+
+### Consequences
+- If `summary` had been configured as the required check on a branch
+  ruleset before this fix, that ruleset would have been decorative — a PR
+  with a genuinely broken test suite could still merge, because the check
+  being required never reflected the pipeline's real outcome. This was
+  caught before any ruleset pointed at `summary` specifically (the interim
+  ruleset configuration requires the four individual jobs instead — see
+  Alternatives above).
+- Verified end to end after this change: backend suite (`go test ./... -v`)
+  and frontend suite (`npm test -- --coverage --watchAll=false`) both still
+  pass, unaffected by this change (it touches only `.github/workflows/ci.yml`,
+  no application code) — see the verification output accompanying this
+  commit.

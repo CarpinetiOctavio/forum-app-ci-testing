@@ -152,11 +152,11 @@ full pipeline.*
 
 ![Backend tests passing](docs/screenshots/06-backend-tests-passing.png)
 
-*Terminal output of `go test ./tests/services/... -v` — 23/23 passing.*
+*Terminal output of `go test ./tests/services/... -v` — 24/24 passing.*
 
 ![Backend coverage](docs/screenshots/07-backend-coverage.png)
 
-*Terminal output showing 54.1% coverage measured against `internal/services`
+*Terminal output showing 55.2% coverage measured against `internal/services`
 — the declared scope of this repo (see ADR-002).*
 
 ![Frontend tests passing](docs/screenshots/08-frontend-tests-passing.png)
@@ -240,15 +240,15 @@ cd frontend && npm start
 # Backend
 cd backend
 go test ./tests/services/... -v -cover -coverpkg=./internal/services/...
-# 23/23 pass, 54.1% coverage
+# 24/24 pass, 55.2% coverage
 
 # Frontend
 cd frontend
 npm test -- --coverage --watchAll=false
-# 34/34 pass
+# 36/36 pass
 ```
 
-54.1% is measured exclusively against `internal/services` — the entire
+55.2% is measured exclusively against `internal/services` — the entire
 declared testing scope of this repository, not a partial view of it. See
 [ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md) for why that
 scope excludes `Repository` and `Handlers`.
@@ -278,7 +278,7 @@ forum-app-ci-testing/
 │   │   └── services/                    # Business logic — the tested layer
 │   ├── tests/
 │   │   ├── mocks/                       # Repository test doubles
-│   │   └── services/                    # 23 unit tests
+│   │   └── services/                    # 24 unit tests
 │   ├── go.mod
 │   └── go.sum
 ├── frontend/
@@ -289,7 +289,7 @@ forum-app-ci-testing/
 │   │   └── __mocks__/axios.ts           # HTTP test double
 │   └── package.json
 ├── docs/
-│   ├── decisions/                       # ADR-000 through ADR-007
+│   ├── decisions/                       # ADR-000 through ADR-009
 │   ├── diagrams/ci-pipeline-flow.svg
 │   ├── screenshots/                     # 10 evidence screenshots (pipeline, branch protection, coverage, git history)
 │   ├── rules/                           # AI assistant operating rules
@@ -314,7 +314,7 @@ documentation itself for review. `CLAUDE.md` states this constraint explicitly
 and defines the initialization protocol any assistant session follows before
 touching a file.
 
-`docs/decisions/` holds eight ADRs, each grounded independently rather than
+`docs/decisions/` holds ten ADRs, each grounded independently rather than
 copied from a later repository in this series (see
 [ADR-000](docs/decisions/ADR-000-resolving-forward-not-mirroring-backward.md)):
 
@@ -328,6 +328,8 @@ copied from a later repository in this series (see
 | [005](docs/decisions/ADR-005-package-lock-incident.md) | A `package-lock.json` desync incident, reconstructed from git history |
 | [006](docs/decisions/ADR-006-test-name-translation.md) | Why test names were translated to English, and why that differs from `cloud-deploy`'s equivalent decision |
 | [007](docs/decisions/ADR-007-application-language.md) | Why the application's own UI text and error messages are in English, not just its documentation |
+| [008](docs/decisions/ADR-008-app-security-scope.md) | Security hardening applied post-v1.0.0 (bcrypt, request-body limits, an internal-error leak fix) and the limitations accepted, not corrected |
+| [009](docs/decisions/ADR-009-comment-language-and-aaa-convention.md) | Translating residual Spanish test comments and standardizing the AAA-comment convention |
 
 `docs/rules/` defines the operating rules an assistant follows in this
 repository — what's in scope, what naming and testing conventions apply, and
@@ -351,10 +353,10 @@ exact commands in [`docs/COMMANDS.md`](docs/COMMANDS.md#troubleshooting).
 
 | Metric | Result             | Notes |
 |--------|--------------------|-------|
-| Backend unit tests | 23/23              | AuthService (11) + PostService (12) |
-| Frontend unit tests | 36/36              | authService (5) + postService (14) + Login (7) + PostList (7) + CommentList (5) |
-| Total tests | 59                 | — |
-| Backend coverage | 54.1%              | `internal/services` only — 100% of declared scope (see [ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md)) |
+| Backend unit tests | 24/24              | AuthService (12) + PostService (12) |
+| Frontend unit tests | 36/36              | authService (5) + postService (14) + Login (6) + PostList (6) + CommentList (5) |
+| Total tests | 60                 | — |
+| Backend coverage | 55.2%              | `internal/services` only — 100% of declared scope (see [ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md)) |
 | Frontend coverage | 52.19% (all files) | Files outside declared scope included in this aggregate; tested files individually: 86–100% (see [ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md)) |
 
 ---

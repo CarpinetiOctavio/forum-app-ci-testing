@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
 	"forum-app-ci-testing/internal/models"
 	"forum-app-ci-testing/internal/services"
+	"github.com/gorilla/mux"
 )
 
 // PostHandler handles post HTTP requests
@@ -24,9 +26,16 @@ func NewPostHandler(postService *services.PostService) *PostHandler {
 
 // CreatePost handles POST /api/posts
 func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, maxRequestBodyBytes)
+
 	// Decode the body
 	var req models.CreatePostRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			respondWithError(w, http.StatusRequestEntityTooLarge, "request body too large")
+			return
+		}
 		respondWithError(w, http.StatusBadRequest, "invalid JSON")
 		return
 	}
@@ -59,7 +68,8 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 func (h *PostHandler) GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	posts, err := h.postService.GetAllPosts()
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		log.Println("GetAllPosts error:", err)
+		respondWithError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
@@ -128,9 +138,16 @@ func (h *PostHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, maxRequestBodyBytes)
+
 	// Decode the body
 	var req models.CreateCommentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			respondWithError(w, http.StatusRequestEntityTooLarge, "request body too large")
+			return
+		}
 		respondWithError(w, http.StatusBadRequest, "invalid JSON")
 		return
 	}

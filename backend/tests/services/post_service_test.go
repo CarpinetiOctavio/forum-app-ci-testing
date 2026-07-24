@@ -19,16 +19,14 @@ func TestCreatePost_Success(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	postService := services.NewPostService(mockRepo, mockUserRepo)
 
-	// ← AGREGAR ESTO
 	existingUser := &models.User{
 		ID:       1,
 		Email:    "test@example.com",
 		Username: "testuser",
 	}
 	mockUserRepo.On("FindByID", 1).Return(existingUser, nil)
-	// ← FIN
 
-	// Configurar mock: Create debe ejecutarse correctamente
+	// Configure the mock: Create should execute successfully
 	mockRepo.On("Create", mock.AnythingOfType("*models.Post")).Return(nil)
 
 	req := &models.CreatePostRequest{
@@ -57,7 +55,7 @@ func TestCreatePost_UserNotFound(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	postService := services.NewPostService(mockRepo, mockUserRepo)
 
-	// Configurar mock: FindByID del user devuelve nil (no existe)
+	// Configure the mock: FindByID returns nil (user does not exist)
 	mockUserRepo.On("FindByID", 999).Return(nil, nil)
 
 	req := &models.CreatePostRequest{
@@ -84,11 +82,11 @@ func TestCreatePost_RepoError(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	postService := services.NewPostService(mockRepo, mockUserRepo)
 
-	// Usuario existe
+	// The user exists
 	existingUser := &models.User{ID: 1, Email: "u@u.com", Username: "u"}
 	mockUserRepo.On("FindByID", 1).Return(existingUser, nil)
 
-	// El repo Create falla
+	// The repository's Create call fails
 	mockRepo.On("Create", mock.AnythingOfType("*models.Post")).Return(errors.New("db error"))
 
 	req := &models.CreatePostRequest{
@@ -127,7 +125,7 @@ func TestCreatePost_EmptyTitle(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, post)
 	assert.Equal(t, "title is required", err.Error())
-	// No debe llamar al repo ni al userRepo
+	// Should NOT call the repo or the userRepo
 	mockRepo.AssertNotCalled(t, "Create")
 	mockUserRepo.AssertNotCalled(t, "FindByID")
 }
@@ -171,11 +169,12 @@ func TestDeletePost_Success(t *testing.T) {
 		Username: "testuser",
 	}
 
-	// Configurar mocks
+	// Configure mocks
 	mockRepo.On("FindByID", 1).Return(existingPost, nil)
 	mockRepo.On("Delete", 1).Return(nil)
 
-	// ACT: User 1 deletes their own post
+	// User 1 deletes their own post
+	// ACT
 	err := postService.DeletePost(1, 1)
 
 	// ASSERT
@@ -191,7 +190,7 @@ func TestDeletePost_PostNotFound(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	postService := services.NewPostService(mockRepo, mockUserRepo)
 
-	// Post no existe
+	// The post does not exist
 	mockRepo.On("FindByID", 999).Return(nil, nil)
 
 	// ACT
@@ -222,7 +221,8 @@ func TestDeletePost_NotTheAuthor(t *testing.T) {
 
 	mockRepo.On("FindByID", 1).Return(existingPost, nil)
 
-	// ACT: User 2 attempts to delete user 1's post
+	// User 2 attempts to delete user 1's post
+	// ACT
 	err := postService.DeletePost(1, 2)
 
 	// ASSERT
@@ -254,12 +254,13 @@ func TestDeleteComment_Success(t *testing.T) {
 		Username: "testuser",
 	}
 
-	// Configurar mocks
+	// Configure mocks
 	mockRepo.On("FindByID", 1).Return(existingPost, nil)
 	mockUserRepo.On("FindByID", 1).Return(existingUser, nil)
 	mockRepo.On("DeleteComment", 1, 10, 1).Return(nil)
 
-	// ACT: User 1 deletes their own comment
+	// User 1 deletes their own comment
+	// ACT
 	err := postService.DeleteComment(1, 10, 1)
 
 	// ASSERT
@@ -275,7 +276,7 @@ func TestDeleteComment_PostNotFound(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	postService := services.NewPostService(mockRepo, mockUserRepo)
 
-	// Post no existe
+	// The post does not exist
 	mockRepo.On("FindByID", 999).Return(nil, nil)
 
 	// ACT
