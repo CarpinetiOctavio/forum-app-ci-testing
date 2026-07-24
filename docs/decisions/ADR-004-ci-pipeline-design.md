@@ -105,6 +105,14 @@ gate.
   design (see rationale above); catching a silently-broken measurement
   depends on periodically inspecting what the artifact actually contains,
   which is what surfaced this one.
+- **The 54.1% figure above is a point-in-time verification record, not a
+  living number.** It documents what was true when this ADR's `-coverpkg`
+  fix was verified, the same way `git blame` documents authorship at a
+  commit — it is deliberately not updated as the suite changes afterward.
+  The actual current coverage differs following ADR-008's security
+  hardening (55.2%, one new test added); see the README's Metrics table
+  for the current figure, or run the command in `docs/COMMANDS.md`
+  directly.
 
 ## Branching model correction: from post-hoc verification to preventive gate
 

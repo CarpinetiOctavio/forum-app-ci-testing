@@ -152,11 +152,11 @@ full pipeline.*
 
 ![Backend tests passing](docs/screenshots/06-backend-tests-passing.png)
 
-*Terminal output of `go test ./tests/services/... -v` — 23/23 passing.*
+*Terminal output of `go test ./tests/services/... -v` — 24/24 passing.*
 
 ![Backend coverage](docs/screenshots/07-backend-coverage.png)
 
-*Terminal output showing 54.1% coverage measured against `internal/services`
+*Terminal output showing 55.2% coverage measured against `internal/services`
 — the declared scope of this repo (see ADR-002).*
 
 ![Frontend tests passing](docs/screenshots/08-frontend-tests-passing.png)
@@ -240,15 +240,15 @@ cd frontend && npm start
 # Backend
 cd backend
 go test ./tests/services/... -v -cover -coverpkg=./internal/services/...
-# 23/23 pass, 54.1% coverage
+# 24/24 pass, 55.2% coverage
 
 # Frontend
 cd frontend
 npm test -- --coverage --watchAll=false
-# 34/34 pass
+# 36/36 pass
 ```
 
-54.1% is measured exclusively against `internal/services` — the entire
+55.2% is measured exclusively against `internal/services` — the entire
 declared testing scope of this repository, not a partial view of it. See
 [ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md) for why that
 scope excludes `Repository` and `Handlers`.
@@ -278,7 +278,7 @@ forum-app-ci-testing/
 │   │   └── services/                    # Business logic — the tested layer
 │   ├── tests/
 │   │   ├── mocks/                       # Repository test doubles
-│   │   └── services/                    # 23 unit tests
+│   │   └── services/                    # 24 unit tests
 │   ├── go.mod
 │   └── go.sum
 ├── frontend/
@@ -351,10 +351,10 @@ exact commands in [`docs/COMMANDS.md`](docs/COMMANDS.md#troubleshooting).
 
 | Metric | Result             | Notes |
 |--------|--------------------|-------|
-| Backend unit tests | 23/23              | AuthService (11) + PostService (12) |
-| Frontend unit tests | 36/36              | authService (5) + postService (14) + Login (7) + PostList (7) + CommentList (5) |
-| Total tests | 59                 | — |
-| Backend coverage | 54.1%              | `internal/services` only — 100% of declared scope (see [ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md)) |
+| Backend unit tests | 24/24              | AuthService (12) + PostService (12) |
+| Frontend unit tests | 36/36              | authService (5) + postService (14) + Login (6) + PostList (6) + CommentList (5) |
+| Total tests | 60                 | — |
+| Backend coverage | 55.2%              | `internal/services` only — 100% of declared scope (see [ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md)) |
 | Frontend coverage | 52.19% (all files) | Files outside declared scope included in this aggregate; tested files individually: 86–100% (see [ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md)) |
 
 ---

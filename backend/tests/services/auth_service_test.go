@@ -1,6 +1,7 @@
 package services
 
 import (
+	"strings"
 	"testing"
 
 	"forum-app-ci-testing/internal/models"
@@ -9,19 +10,36 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"golang.org/x/crypto/bcrypt"
 )
 
-// TestRegister_Success verifies a user registers successfully
+// TestRegister_Success verifies a user registers successfully, and that the
+// password reaching the repository is bcrypt-hashed, never the plaintext
+// input.
+//
+// Unlike TestLogin_Success/TestLogin_IncorrectPassword, this test cannot use
+// bcrypt.MinCost: it calls the real AuthService.Register, which hashes with
+// bcrypt.DefaultCost internally (see ADR-008) - the cost isn't a test-side
+// choice here, it's dictated by production code. That makes this the one
+// test in this file that pays bcrypt's real ~60-100ms cost. That's expected
+// for this single test, not a regression - mocking the hashing itself to
+// avoid it would test nothing.
 func TestRegister_Success(t *testing.T) {
-	// ARRANGE: Preparar el mock y datos de prueba
+	// ARRANGE
 	mockRepo := new(mocks.MockUserRepository)
 	authService := services.NewAuthService(mockRepo)
 
-	// Configurar el mock: el email NO existe (devuelve nil)
+	// Configure the mock: the email does not exist yet
 	mockRepo.On("FindByEmail", "test@example.com").Return(nil, nil)
 
-	// Configurar el mock: Create debe ejecutarse correctamente
-	mockRepo.On("Create", mock.AnythingOfType("*models.User")).Return(nil)
+	// Configure the mock: Create should execute successfully, capturing the
+	// user it was called with so the ASSERT step can inspect the password
+	var createdUser *models.User
+	mockRepo.On("Create", mock.AnythingOfType("*models.User")).
+		Run(func(args mock.Arguments) {
+			createdUser = args.Get(0).(*models.User)
+		}).
+		Return(nil)
 
 	req := &models.RegisterRequest{
 		Email:    "test@example.com",
@@ -29,14 +47,19 @@ func TestRegister_Success(t *testing.T) {
 		Username: "testuser",
 	}
 
-	// ACT: Execute the function under test
+	// ACT
 	user, err := authService.Register(req)
 
-	// ASSERT: Verificar los resultados
+	// ASSERT
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
 	assert.Equal(t, "test@example.com", user.Email)
 	assert.Equal(t, "testuser", user.Username)
+
+	// The password persisted to the repository must be hashed, not plaintext
+	assert.NotEqual(t, "123456", createdUser.Password)
+	hashErr := bcrypt.CompareHashAndPassword([]byte(createdUser.Password), []byte("123456"))
+	assert.NoError(t, hashErr)
 
 	// Verify the mock's methods were called
 	mockRepo.AssertExpectations(t)
@@ -109,6 +132,31 @@ func TestRegister_PasswordTooShort(t *testing.T) {
 	assert.Equal(t, "password must be at least 6 characters", err.Error())
 }
 
+// TestRegister_PasswordTooLong verifies registration fails when the password exceeds bcrypt's 72-byte input limit
+func TestRegister_PasswordTooLong(t *testing.T) {
+	// ARRANGE
+	mockRepo := new(mocks.MockUserRepository)
+	authService := services.NewAuthService(mockRepo)
+
+	req := &models.RegisterRequest{
+		Email:    "test@example.com",
+		Password: strings.Repeat("a", 73), // One byte over bcrypt's 72-byte limit
+		Username: "testuser",
+	}
+
+	// ACT
+	user, err := authService.Register(req)
+
+	// ASSERT
+	assert.Error(t, err)
+	assert.Nil(t, user)
+	assert.Equal(t, "password must not exceed 72 characters", err.Error())
+
+	// Should NOT have called the DB because validation failed first
+	mockRepo.AssertNotCalled(t, "FindByEmail")
+	mockRepo.AssertNotCalled(t, "Create")
+}
+
 // TestRegister_EmptyUsername verifies registration fails when the username is empty
 func TestRegister_EmptyUsername(t *testing.T) {
 	// ARRANGE
@@ -142,7 +190,7 @@ func TestRegister_DuplicateEmail(t *testing.T) {
 		Username: "existinguser",
 	}
 
-	// Configurar el mock: el email YA existe
+	// Configure the mock: the email already exists
 	mockRepo.On("FindByEmail", "test@example.com").Return(existingUser, nil)
 
 	req := &models.RegisterRequest{
@@ -159,7 +207,7 @@ func TestRegister_DuplicateEmail(t *testing.T) {
 	assert.Nil(t, user)
 	assert.Equal(t, "email is already registered", err.Error())
 
-	// NO debe llamar a Create porque el email ya existe
+	// Should NOT call Create because the email already exists
 	mockRepo.AssertNotCalled(t, "Create")
 }
 
@@ -169,10 +217,13 @@ func TestLogin_Success(t *testing.T) {
 	mockRepo := new(mocks.MockUserRepository)
 	authService := services.NewAuthService(mockRepo)
 
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.MinCost)
+	assert.NoError(t, err)
+
 	existingUser := &models.User{
 		ID:       1,
 		Email:    "test@example.com",
-		Password: "123456",
+		Password: string(hashedPassword),
 		Username: "testuser",
 	}
 
@@ -185,10 +236,10 @@ func TestLogin_Success(t *testing.T) {
 	}
 
 	// ACT
-	user, err := authService.Login(creds)
+	user, loginErr := authService.Login(creds)
 
 	// ASSERT
-	assert.NoError(t, err)
+	assert.NoError(t, loginErr)
 	assert.NotNil(t, user)
 	assert.Equal(t, "test@example.com", user.Email)
 	assert.Equal(t, "testuser", user.Username)
@@ -269,10 +320,13 @@ func TestLogin_IncorrectPassword(t *testing.T) {
 	mockRepo := new(mocks.MockUserRepository)
 	authService := services.NewAuthService(mockRepo)
 
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.MinCost)
+	assert.NoError(t, err)
+
 	existingUser := &models.User{
 		ID:       1,
 		Email:    "test@example.com",
-		Password: "123456",
+		Password: string(hashedPassword),
 		Username: "testuser",
 	}
 

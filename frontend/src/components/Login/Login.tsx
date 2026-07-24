@@ -77,6 +77,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              maxLength={72}
               disabled={loading}
             />
           </div>

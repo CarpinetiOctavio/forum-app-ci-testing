@@ -6,6 +6,8 @@ import (
 
 	"forum-app-ci-testing/internal/models"
 	"forum-app-ci-testing/internal/repository"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // AuthService handles authentication logic
@@ -38,12 +40,17 @@ func (s *AuthService) Register(req *models.RegisterRequest) (*models.User, error
 		return nil, errors.New("password must be at least 6 characters")
 	}
 
-	// Validation 4: Username cannot be empty
+	// Validation 4: Password must not exceed 72 characters (bcrypt's own input limit)
+	if len(req.Password) > 72 {
+		return nil, errors.New("password must not exceed 72 characters")
+	}
+
+	// Validation 5: Username cannot be empty
 	if strings.TrimSpace(req.Username) == "" {
 		return nil, errors.New("username is required")
 	}
 
-	// Validation 5: Verify the email is not already registered
+	// Validation 6: Verify the email is not already registered
 	existingUser, err := s.userRepo.FindByEmail(req.Email)
 	if err != nil {
 		return nil, err
@@ -52,10 +59,15 @@ func (s *AuthService) Register(req *models.RegisterRequest) (*models.User, error
 		return nil, errors.New("email is already registered")
 	}
 
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
 	// Create the user
 	user := &models.User{
 		Email:    strings.ToLower(strings.TrimSpace(req.Email)),
-		Password: req.Password, // In production: hash with bcrypt
+		Password: string(hashedPassword),
 		Username: strings.TrimSpace(req.Username),
 	}
 
@@ -91,8 +103,7 @@ func (s *AuthService) Login(creds *models.Credentials) (*models.User, error) {
 	}
 
 	// Validation 4: Password must match
-	// In production: use bcrypt.CompareHashAndPassword
-	if user.Password != creds.Password {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password)); err != nil {
 		return nil, errors.New("invalid credentials")
 	}
 

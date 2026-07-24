@@ -92,3 +92,8 @@ mirroring ADR-000 rules out.
 - Component `.tsx` source files and their rendered (Spanish) UI text were not
   touched — that is a product-copy decision out of this ADR's and this TP's
   scope.
+- **The 23/23 and 34/34 counts above are a point-in-time verification
+  record** — proof this rename didn't break anything at the time it was
+  made — not a living count. Both totals have since grown (24 backend per
+  ADR-008; 36 frontend, from tests added independently of both this ADR
+  and ADR-008); see the README's Metrics table for the current counts.
