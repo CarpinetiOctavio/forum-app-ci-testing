@@ -289,7 +289,7 @@ forum-app-ci-testing/
 │   │   └── __mocks__/axios.ts           # HTTP test double
 │   └── package.json
 ├── docs/
-│   ├── decisions/                       # ADR-000 through ADR-007
+│   ├── decisions/                       # ADR-000 through ADR-009
 │   ├── diagrams/ci-pipeline-flow.svg
 │   ├── screenshots/                     # 10 evidence screenshots (pipeline, branch protection, coverage, git history)
 │   ├── rules/                           # AI assistant operating rules
@@ -314,7 +314,7 @@ documentation itself for review. `CLAUDE.md` states this constraint explicitly
 and defines the initialization protocol any assistant session follows before
 touching a file.
 
-`docs/decisions/` holds eight ADRs, each grounded independently rather than
+`docs/decisions/` holds ten ADRs, each grounded independently rather than
 copied from a later repository in this series (see
 [ADR-000](docs/decisions/ADR-000-resolving-forward-not-mirroring-backward.md)):
 
@@ -328,6 +328,8 @@ copied from a later repository in this series (see
 | [005](docs/decisions/ADR-005-package-lock-incident.md) | A `package-lock.json` desync incident, reconstructed from git history |
 | [006](docs/decisions/ADR-006-test-name-translation.md) | Why test names were translated to English, and why that differs from `cloud-deploy`'s equivalent decision |
 | [007](docs/decisions/ADR-007-application-language.md) | Why the application's own UI text and error messages are in English, not just its documentation |
+| [008](docs/decisions/ADR-008-app-security-scope.md) | Security hardening applied post-v1.0.0 (bcrypt, request-body limits, an internal-error leak fix) and the limitations accepted, not corrected |
+| [009](docs/decisions/ADR-009-comment-language-and-aaa-convention.md) | Translating residual Spanish test comments and standardizing the AAA-comment convention |
 
 `docs/rules/` defines the operating rules an assistant follows in this
 repository — what's in scope, what naming and testing conventions apply, and
