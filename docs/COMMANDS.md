@@ -96,7 +96,7 @@ cd frontend && npm test -- --watchAll=false
 ```bash
 cd backend
 for i in {1..10}; do go test ./tests/services/... -v; done
-# All 10 runs produce the same 23/23 pass result — mocks return fixed,
+# All 10 runs produce the same 24/24 pass result — mocks return fixed,
 # pre-configured values, so there is no shared or accumulating state between runs
 ```
 

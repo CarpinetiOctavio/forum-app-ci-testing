@@ -2,11 +2,15 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"forum-app-ci-testing/internal/models"
 	"forum-app-ci-testing/internal/services"
 )
+
+// maxRequestBodyBytes caps the size of any JSON request body this handler decodes.
+const maxRequestBodyBytes = 1 << 20 // 1MB
 
 // AuthHandler handles authentication HTTP requests
 type AuthHandler struct {
@@ -22,9 +26,16 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 
 // Register handles POST /api/auth/register
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, maxRequestBodyBytes)
+
 	// Decode the JSON body
 	var req models.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			respondWithError(w, http.StatusRequestEntityTooLarge, "request body too large")
+			return
+		}
 		respondWithError(w, http.StatusBadRequest, "invalid JSON")
 		return
 	}
@@ -42,9 +53,16 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 // Login handles POST /api/auth/login
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, maxRequestBodyBytes)
+
 	// Decode the JSON body
 	var creds models.Credentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			respondWithError(w, http.StatusRequestEntityTooLarge, "request body too large")
+			return
+		}
 		respondWithError(w, http.StatusBadRequest, "invalid JSON")
 		return
 	}

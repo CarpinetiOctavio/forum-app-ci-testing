@@ -117,3 +117,11 @@ running surface), not by copying `cloud-deploy`'s current state as-is.
   Spanish, unchanged, on purpose — see Decision above.
 - Coverage is unchanged: 54.1% backend, 50.24% frontend ("All files"), before
   and after — confirming this ADR records a translation, not a behavior change.
+- **Every count and percentage in this section is a point-in-time
+  verification record** — proof this translation pass didn't change
+  behavior — not a living figure. Current state differs: 24/24 backend
+  tests at 55.2% coverage following ADR-008's security hardening; 36/36
+  frontend tests (grown independently of both this ADR and ADR-008) at
+  52.19% ("All files"). Why the frontend percentage moved from 50.24% to
+  52.19% between this ADR and now was not re-verified here — see the
+  README's Metrics table for the current figures.
