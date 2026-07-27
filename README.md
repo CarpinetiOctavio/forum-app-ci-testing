@@ -131,6 +131,14 @@ not as a merge blocker.*
 *All five jobs green on the PR staging→main — evidence that the pipeline runs
 as a preventive gate, not post-hoc verification.*
 
+![Branch protection ruleset configuration](docs/screenshots/02.0-branch-protection-ruleset.png)
+
+*The ruleset protecting `staging` and `main` — a single configuration covering
+both branches, replacing GitHub's classic branch protection rules used when
+this pipeline was first built. See
+[ADR-010](docs/decisions/ADR-010-branch-protection-mechanism-migration-classic-to-rulesets.md)
+for why the mechanism changed and what carried over unchanged.*
+
 ![Branch protection gate on staging](docs/screenshots/02-branch-protection-gate-staging.png)
 
 *Merging blocked on staging until required checks pass — the gate enforced
@@ -289,9 +297,9 @@ forum-app-ci-testing/
 │   │   └── __mocks__/axios.ts           # HTTP test double
 │   └── package.json
 ├── docs/
-│   ├── decisions/                       # ADR-000 through ADR-009
+│   ├── decisions/                       # ADR-000 through ADR-010
 │   ├── diagrams/ci-pipeline-flow.svg
-│   ├── screenshots/                     # 10 evidence screenshots (pipeline, branch protection, coverage, git history)
+│   ├── screenshots/                     # 13 evidence screenshots (pipeline, ruleset, branch protection, coverage, git history)
 │   ├── rules/                           # AI assistant operating rules
 │   ├── SETUP.md
 │   └── COMMANDS.md
@@ -314,7 +322,7 @@ documentation itself for review. `CLAUDE.md` states this constraint explicitly
 and defines the initialization protocol any assistant session follows before
 touching a file.
 
-`docs/decisions/` holds ten ADRs, each grounded independently rather than
+`docs/decisions/` holds eleven ADRs, each grounded independently rather than
 copied from a later repository in this series (see
 [ADR-000](docs/decisions/ADR-000-resolving-forward-not-mirroring-backward.md)):
 
@@ -330,6 +338,7 @@ copied from a later repository in this series (see
 | [007](docs/decisions/ADR-007-application-language.md) | Why the application's own UI text and error messages are in English, not just its documentation |
 | [008](docs/decisions/ADR-008-app-security-scope.md) | Security hardening applied post-v1.0.0 (bcrypt, request-body limits, an internal-error leak fix) and the limitations accepted, not corrected |
 | [009](docs/decisions/ADR-009-comment-language-and-aaa-convention.md) | Translating residual Spanish test comments and standardizing the AAA-comment convention |
+| [010](docs/decisions/ADR-010-branch-protection-mechanism-migration-classic-to-rulesets.md) | Migrating `staging`/`main` branch protection from classic rules to a ruleset, and why |
 
 `docs/rules/` defines the operating rules an assistant follows in this
 repository — what's in scope, what naming and testing conventions apply, and
