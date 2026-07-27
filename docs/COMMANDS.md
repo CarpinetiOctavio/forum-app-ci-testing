@@ -70,6 +70,21 @@ git push origin main
 View results at:
 `https://github.com/CarpinetiOctavio/forum-app-ci-testing/actions`
 
+## Git history evidence
+
+Used to capture the branching-model screenshots
+(`docs/screenshots/09-git-history-before-branching.png` and
+`10a`/`10b-git-history-after-branching-*.png`):
+
+```bash
+git log --graph --all --decorate --format="%C(yellow)%h%C(reset) %C(cyan)%ad%C(reset)%C(auto)%d%C(reset) %s %C(green)(%an)%C(reset)" --date=short
+```
+
+`--all` shows every local branch, not just the checked-out one; the `%d` in
+`--format` is what actually prints ref/tag labels (`HEAD -> ...`, `origin/main`,
+`v1.0.0`) inline on the graph — `--decorate` alone has no effect once a custom
+`--format` is supplied.
+
 ## Verifying test isolation
 
 These are manual checks, not automated ones — they demonstrate that the mocking
