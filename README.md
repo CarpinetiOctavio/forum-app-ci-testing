@@ -121,17 +121,12 @@ replaced the original push-to-main trigger.
 
 ![Pipeline triggered by push to feature branch](docs/screenshots/00-pipeline-summary-feature-push.png)
 
-*Pipeline triggered by a push to `feature/portfolio-setup` — early
-detection during active development. The same five jobs run here as
-in the PR gate, but as diagnostic feedback on the feature branch,
-not as a merge blocker.*
+*Pipeline triggered by a push to `feature/app-security-hardening` — early
+detection during active development. The same five jobs run here as in the
+PR gate, but as diagnostic feedback on the feature branch, not as a merge
+blocker.*
 
-![Pipeline passing](docs/screenshots/01-pipeline-passing-main.png)
-
-*All five jobs green on the PR staging→main — evidence that the pipeline runs
-as a preventive gate, not post-hoc verification.*
-
-![Branch protection ruleset configuration](docs/screenshots/02.0-branch-protection-ruleset.png)
+![Branch protection ruleset configuration](docs/screenshots/01-branch-protection-ruleset.png)
 
 *The ruleset protecting `staging` and `main` — a single configuration covering
 both branches, replacing GitHub's classic branch protection rules used when
@@ -152,7 +147,7 @@ evidence the policy is enforced at the protocol level, not just in the UI.*
 ![Branch protection gate on main](docs/screenshots/03-branch-protection-gate-main.png)
 
 *Same gate on main — nothing reaches the stable branch without passing the
-full pipeline.*
+full pipeline. The pipeline runs as a preventive gate, not post-hoc verification.*
 
 ![Branch protection blocked on main](docs/screenshots/05-branch-protection-blocked-main.png)
 
@@ -299,7 +294,7 @@ forum-app-ci-testing/
 ├── docs/
 │   ├── decisions/                       # ADR-000 through ADR-010
 │   ├── diagrams/ci-pipeline-flow.svg
-│   ├── screenshots/                     # 13 evidence screenshots (pipeline, ruleset, branch protection, coverage, git history)
+│   ├── screenshots/                     # 12 evidence screenshots (pipeline, ruleset, branch protection, coverage, git history)
 │   ├── rules/                           # AI assistant operating rules
 │   ├── SETUP.md
 │   └── COMMANDS.md
