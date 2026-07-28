@@ -65,6 +65,30 @@ repository's own scope — never in "the next repo already solved this." If this
 foundation isn't sound on its own terms, nothing built on top of it in
 `qa-pipeline` or `cloud-deploy` has a real base to stand on.
 
+**Previous context:** This series began as coursework for Software Engineering III at UCC, during
+the second half of 2025 — TP6, TP7, and TP8 respectively. That original scope
+was bounded by the time a single academic term allows, not by a judgment that
+anything beyond it lacked value: a course has a fixed number of weeks, and a
+TP's stated requirements are what's gradeable within them, not a ceiling on
+what the underlying problem deserves. The deliberate choice, carried across
+all three repos while building this portfolio, is to revisit that same
+problem without that time constraint, treating the course's original scope as
+a conceptual starting point rather than a limit: the goal is not "what the
+assignment required," it's "what a professional, defensible engineering
+artifact built on that same problem would look like." Where the two
+coincide, the course's bar is met and nothing more is added for its own sake.
+Where they don't — where meeting the letter of the assignment would leave a
+gap a real reviewer would flag — the repo goes further, in the specific
+situations that warrant it, and that gap is documented as a demonstration of
+reasoning, not papered over.
+
+Both directions of that boundary are on record in this repository:
+[ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md) documents
+where the course's own bar was judged sufficient and nothing further was
+added; [ADR-008](docs/decisions/ADR-008-app-security-scope.md) documents
+where it wasn't, and where the repo went further than TP6 asked — while
+still drawing an explicit line on how far.
+
 ---
 
 ## Scope — What This Repo Does and Deliberately Does Not Do
