@@ -37,3 +37,11 @@ development.
   as pending, not executed, until ci-testing and qa-pipeline are complete.
 - Each repo's ADRs must stand on their own justification; cross-repo references are
   used only to explain divergence, never as the justification itself.
+
+## Amendment (2026-11-12): which repository "forum-app-cloud-deploy" means here
+
+When this ADR was written (2026-07-04), `forum-app-cloud-deploy` was the
+repository now archived as `forum-app-cloud-deploy-legacy`; the resolutions
+and the `ADR-008` this ADR mentions are that repository's. The current
+`forum-app-cloud-deploy` was created on 2026-08-03; its `ADR-008` is about
+explicit port binding, not test names. The decision is unchanged.

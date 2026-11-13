@@ -27,7 +27,8 @@ omission, and it doesn't get "fixed" in this repo.
 
 ## What NOT to do
 - No coverage gates, static analysis, or integration/E2E tests here.
-- Do not resolve an inconsistency by copying how forum-app-cloud-deploy resolved the
-  analogous case. Resolve it independently, grounded in this repo's own scope and
+- Do not resolve an inconsistency by copying how a later repo in the series
+  (forum-app-qa-pipeline, forum-app-cloud-deploy, or forum-app-cloud-deploy-legacy)
+  resolved the analogous case. Resolve it independently, grounded in this repo's own scope and
   literature.
 - Do not silently "improve" test behavior without flagging it first.

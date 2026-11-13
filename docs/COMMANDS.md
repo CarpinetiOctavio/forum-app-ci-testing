@@ -58,13 +58,16 @@ cd backend && go test ./tests/services/... -v && cd ../frontend && npm test -- -
 
 ## CI
 
-The pipeline (`.github/workflows/ci.yml`) runs automatically on every push or
-pull request to `main`, `master`, or `develop`. To trigger a run without a
-code change:
+The pipeline (`.github/workflows/ci.yml`) runs on every push to a `feature/**`
+branch and on every pull request into `staging` or `main` (see
+[ADR-004](decisions/ADR-004-ci-pipeline-design.md)). Direct pushes to `staging`
+and `main` are rejected by the branch ruleset. To trigger a run without a code
+change, push an empty commit to a feature branch:
 
 ```bash
+git switch -c feature/trigger-pipeline
 git commit --allow-empty -m "chore: trigger pipeline"
-git push origin main
+git push origin feature/trigger-pipeline
 ```
 
 View results at:
