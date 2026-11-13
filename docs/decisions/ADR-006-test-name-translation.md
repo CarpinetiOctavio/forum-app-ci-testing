@@ -97,3 +97,11 @@ mirroring ADR-000 rules out.
   made — not a living count. Both totals have since grown (24 backend per
   ADR-008; 36 frontend, from tests added independently of both this ADR
   and ADR-008); see the README's Metrics table for the current counts.
+
+## Amendment (2026-11-12): which repository "forum-app-cloud-deploy" means here
+
+"`forum-app-cloud-deploy`'s ADR-008" in this ADR is the ADR-008 of the
+repository now archived as `forum-app-cloud-deploy-legacy`
+(`ADR-008-spanish-test-descriptions.md`). The current `forum-app-cloud-deploy`
+was created on 2026-08-03, after this ADR was written; its `ADR-008` is about
+explicit port binding. The decision is unchanged.

@@ -332,3 +332,33 @@ summary:
   pass, unaffected by this change (it touches only `.github/workflows/ci.yml`,
   no application code) — see the verification output accompanying this
   commit.
+
+## Amendment (2026-11-12): Node.js version, required check, origin of the first commit
+
+**Node.js 18 → 24.** `ci.yml` ran the frontend jobs on `node-version: '18'`
+from this repository's first commit (`7ed7b94`, 2025-10-14). Node.js 18
+reached end of life on 2025-04-30 (`nodejs/Release`, `schedule.json`), before
+that commit existed. The later `1fba25d` ("bump actions to Node.js 24 runtime
+versions") updated the versions of the actions, which run on the runner's own
+Node.js; it did not change `node-version`, the Node.js the tests and the build
+run on. The pipeline kept passing on 18 (run `43374815680`, 2026-11-13 UTC),
+so this is a correction of an unsupported runtime, not of a failure.
+
+Both frontend jobs now use `node-version: '24'`. Per `schedule.json`
+(consulted 2026-11-12), Node.js 24 is an LTS release with support until
+2028-04-30, in maintenance since 2026-10-20. Node.js 26, the active LTS since
+2026-10-28, was tested with the same result (`npm ci`, 36/36 tests, 52.19%
+coverage, build OK) and is not adopted, to keep a single Node.js runtime
+across this series.
+
+**Required check.** The ruleset on `staging` and `main` (ADR-010) requires
+only `Test Summary`, not the four individual checks the Second correction
+above describes as the interim configuration. `Test Summary` reflects the real
+result of the four jobs since `5064c01` (2026-07-24), the commit that applied
+that correction. When the ruleset was switched to the single check is not
+recorded and is not stated here.
+
+**Origin of `7ed7b94`.** The Second correction above describes `7ed7b94` as
+"the code the course handed out for TP6". Git records Octavio Carpineti as
+the author of that commit; whether its content was handed out by the course
+cannot be verified from git history. The original wording is kept above.
