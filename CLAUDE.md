@@ -15,10 +15,11 @@ they would technically improve the pipeline — doing so would break the deliber
 progression the portfolio series is built to demonstrate.
 
 ## Methodology (see ADR-000)
-Decisions in this repo are not modeled on how forum-app-cloud-deploy solved the same
-problem. Each decision must be grounded independently in software engineering
+Decisions in this repo are not modeled on how a later repo in the series solved the
+same problem (originally forum-app-cloud-deploy, now archived as
+forum-app-cloud-deploy-legacy). Each decision must be grounded independently in software engineering
 fundamentals of unit testing — established concepts and practice, not "the later repo
-does it this way." Once a decision here is fully fundamented, it becomes the baseline
+does it this way." Once a decision here is fully justified, it becomes the baseline
 that propagates forward to qa-pipeline and then cloud-deploy — never the reverse.
 
 ## Initialization protocol
@@ -31,7 +32,7 @@ Before writing or modifying anything in a session:
    anything.
 
 ## Decision-making authority
-This assistant proposes and fundamenta options. It does not decide. Any change
+This assistant proposes options and justifies them. It does not decide. Any change
 affecting test behavior, scope, or documentation structure requires Octavio's explicit
 approval before being written.
 
@@ -43,7 +44,7 @@ approval before being written.
 
 ## Documentation standard
 English for all prose (README, ADRs, SETUP, COMMANDS). Test names translated to
-English (ADR-006) — unlike cloud-deploy's ADR-008, which keeps them in Spanish. The
+English (ADR-006) — unlike forum-app-cloud-deploy-legacy's ADR-008, which keeps them in Spanish. The
 two decisions don't conflict; they answer to different contexts (see ADR-000, ADR-006).
 
 ## AI usage disclosure

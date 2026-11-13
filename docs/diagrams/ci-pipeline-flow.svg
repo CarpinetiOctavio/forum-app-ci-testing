@@ -9,7 +9,7 @@
   <!-- Backend Tests -->
   <rect x="60" y="110" width="300" height="70" rx="8" fill="#ecfdf5" stroke="#047857" stroke-width="1.5"/>
   <text x="210" y="138" text-anchor="middle" font-size="14" font-weight="600" fill="#064e3b">Backend Tests (Go)</text>
-  <text x="210" y="156" text-anchor="middle" font-size="11" fill="#065f46">go test ./... -coverprofile</text>
+  <text x="210" y="156" text-anchor="middle" font-size="11" fill="#065f46">go test -coverpkg=./internal/services/...</text>
   <text x="210" y="171" text-anchor="middle" font-size="11" fill="#065f46">upload-artifact: backend-coverage</text>
 
   <!-- Frontend Tests -->
