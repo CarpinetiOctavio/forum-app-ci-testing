@@ -1,5 +1,7 @@
 # Operating rules — testing (forum-app-ci-testing)
 
+> **Agent instructions.** This file is operating context for an AI assistant working in this repository, not project documentation. Decisions and their reasons are in [`docs/decisions/`](../decisions/).
+
 ## Scope of this repo's tests
 Unit tests only, Services layer only (AuthService, PostService in backend;
 authService, postService in frontend). Repository and Handlers layers are
