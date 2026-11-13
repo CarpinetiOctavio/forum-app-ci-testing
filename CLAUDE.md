@@ -1,5 +1,7 @@
 # CLAUDE.md — forum-app-ci-testing
 
+> **Agent instructions.** This file is operating context for an AI assistant working in this repository, not project documentation. Decisions and their reasons are in [`docs/decisions/`](docs/decisions/).
+
 ## Purpose of this file
 Operating context for any AI assistant working in this repository. This repo is TP6
 of a graded course series, now rebuilt as a standalone portfolio piece. It is the
