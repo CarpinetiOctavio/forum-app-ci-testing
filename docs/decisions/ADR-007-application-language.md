@@ -125,3 +125,12 @@ running surface), not by copying `cloud-deploy`'s current state as-is.
   52.19% ("All files"). Why the frontend percentage moved from 50.24% to
   52.19% between this ADR and now was not re-verified here — see the
   README's Metrics table for the current figures.
+
+## Amendment (2026-11-17): the README's Metrics table no longer exists
+
+This ADR refers to "the README's Metrics table" for the current test counts
+and coverage. The README rewrite in `a3fec10` removed that table. The current
+figures are in the README's opening paragraph, next to the CI run they come
+from; [`docs/screenshots/`](../screenshots/) keeps the record once that run's
+logs expire. The figures in this ADR remain point-in-time records. The
+decision is unchanged.

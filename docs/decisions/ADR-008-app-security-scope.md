@@ -203,3 +203,12 @@ stated:
   scope that `v1.0.0` closed is not being reopened or invalidated, it is
   being extended with a post-close finding that the series' own methodology
   requires to be resolved at its origin point.
+
+## Amendment (2026-11-17): the README's Metrics table no longer exists
+
+This ADR refers to "the README's Metrics table" for the current test counts
+and coverage. The README rewrite in `a3fec10` removed that table. The current
+figures are in the README's opening paragraph, next to the CI run they come
+from; [`docs/screenshots/`](../screenshots/) keeps the record once that run's
+logs expire. The figures in this ADR remain point-in-time records. The
+decision is unchanged.

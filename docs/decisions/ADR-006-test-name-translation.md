@@ -105,3 +105,12 @@ repository now archived as `forum-app-cloud-deploy-legacy`
 (`ADR-008-spanish-test-descriptions.md`). The current `forum-app-cloud-deploy`
 was created on 2026-08-03, after this ADR was written; its `ADR-008` is about
 explicit port binding. The decision is unchanged.
+
+## Amendment (2026-11-17): the README's Metrics table no longer exists
+
+This ADR refers to "the README's Metrics table" for the current test counts
+and coverage. The README rewrite in `a3fec10` removed that table. The current
+figures are in the README's opening paragraph, next to the CI run they come
+from; [`docs/screenshots/`](../screenshots/) keeps the record once that run's
+logs expire. The figures in this ADR remain point-in-time records. The
+decision is unchanged.

@@ -13,6 +13,16 @@ Reading paths: in 30 seconds, the opening paragraph; in five minutes, "What this
 
 Closed. This repository continues the history of the TP6 submission (October 2025) and was rebuilt as a portfolio piece in 2026. Decisions are recorded in [`docs/decisions/`](docs/decisions/). `CLAUDE.md` and [`docs/rules/`](docs/rules/) are operating instructions for an AI assistant working in this repository, not project documentation.
 
+## How it works
+
+![CI pipeline flow](docs/diagrams/ci-pipeline-flow.svg)
+
+The two test suites run in parallel; each build runs only after its suite passes, and `Test Summary` reports the result of all four jobs.
+
+![Branching model](docs/diagrams/branching-model.svg)
+
+Changes reach `main` only through pull requests along `feature/** → staging → main`; each pull request runs the pipeline as a required check.
+
 ## What this repository shows
 
 1. **Only the Services layer is unit-tested.** It is the only layer that branches on business rules (validation, "only the author may delete"); testing Repository would mean testing SQL against a database, which is an integration test, not a unit test ([ADR-002](docs/decisions/ADR-002-testing-scope-services-layer.md)).
@@ -39,13 +49,11 @@ Closed. This repository continues the history of the TP6 submission (October 202
 
 ## Decisions
 
-Every decision, with its alternatives and later amendments, is in [`docs/decisions/`](docs/decisions/).
+Every decision, with its alternatives and later amendments, is in [`docs/decisions/`](docs/decisions/); its index lists each record with one line on what it decides.
 
 ## Evidence
 
-![CI pipeline flow](docs/diagrams/ci-pipeline-flow.svg)
-
-The figures above come from [run `43380208077`](https://github.com/CarpinetiOctavio/forum-app-ci-testing/actions/runs/43380208077). GitHub keeps Actions logs for 90 days; [`docs/screenshots/`](docs/screenshots/) is the record after that.
+The figures in the opening paragraph come from [run `43380208077`](https://github.com/CarpinetiOctavio/forum-app-ci-testing/actions/runs/43380208077). GitHub keeps Actions logs for 90 days; [`docs/screenshots/`](docs/screenshots/) is the record after that, with one line per capture on what it shows.
 
 ## Running it
 

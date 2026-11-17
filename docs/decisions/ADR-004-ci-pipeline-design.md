@@ -362,3 +362,12 @@ recorded and is not stated here.
 "the code the course handed out for TP6". Git records Octavio Carpineti as
 the author of that commit; whether its content was handed out by the course
 cannot be verified from git history. The original wording is kept above.
+
+## Amendment (2026-11-17): the README's Metrics table no longer exists
+
+This ADR refers to "the README's Metrics table" for the current test counts
+and coverage. The README rewrite in `a3fec10` removed that table. The current
+figures are in the README's opening paragraph, next to the CI run they come
+from; [`docs/screenshots/`](../screenshots/) keeps the record once that run's
+logs expire. The figures in this ADR remain point-in-time records. The
+decision is unchanged.
