@@ -17,11 +17,11 @@ Closed. This repository continues the history of the TP6 submission (October 202
 
 ![CI pipeline flow](docs/diagrams/ci-pipeline-flow.svg)
 
-The two test suites run in parallel; each build runs only after its suite passes, and `Test Summary` reports the result of all four jobs.
+Job order and triggers: [ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md).
 
 ![Branching model](docs/diagrams/branching-model.svg)
 
-Changes reach `main` only through pull requests along `feature/** → staging → main`; each pull request runs the pipeline as a required check.
+Branching model and the alternatives rejected: [ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md).
 
 ## What this repository shows
 
