@@ -7,7 +7,7 @@ This repository automates the unit tests of a small Go + React forum app with Gi
 
 > **Series.** This is the first of three repositories: **ci-testing** → [qa-pipeline](https://github.com/CarpinetiOctavio/forum-app-qa-pipeline) → [cloud-deploy](https://github.com/CarpinetiOctavio/forum-app-cloud-deploy). The split follows the course's assignments (TP6, TP7, TP8 of Software Engineering III, UCC); in practice it would be one repository with tags.
 
-Reading paths: in 30 seconds, the opening paragraph; in five minutes, "What this repository shows", "Limitations" and "Errors I found and corrected"; in depth, the decision record each point and each error links. The rest is reference.
+Reading paths: in 30 seconds, the opening paragraph; in five minutes, "What this repository shows", "Limitations" and "Errors found and corrected"; in depth, the decision record each point and each error links. The rest is reference.
 
 ## Status
 
@@ -39,12 +39,12 @@ Branching model and the alternatives rejected: [ADR-004](docs/decisions/ADR-004-
 - **No coverage gate, static analysis or E2E tests here** — they are [qa-pipeline](https://github.com/CarpinetiOctavio/forum-app-qa-pipeline)'s scope. The actions are pinned by version tag, not by commit SHA, and the workflow declares no `permissions:`; that hardening belongs to the later repositories in the series.
 - **Dependency advisories** in Create React App's dev tooling and in the Go standard library are recorded, not fixed ([ADR-008](docs/decisions/ADR-008-app-security-scope.md)).
 
-## Errors I found and corrected
+## Errors found and corrected
 
-- I first triggered the pipeline on a push to `main`, so code reached `main` before it was validated; I moved to `feature/** → staging → main` through pull requests ([ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md)).
-- My backend coverage command uploaded `[no statements]` in every run until I added `-coverpkg` ([ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md)).
-- `Test Summary` always passed, whatever its dependencies did, until I made it read their results ([ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md)).
-- I bumped the actions' runtime and left `node-version` at 18, out of support since 2025-04-30; the jobs now run on Node.js 24 ([ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md)).
+- The pipeline was first triggered on a push to `main`, so code reached `main` before it was validated; the trigger moved to `feature/** → staging → main` through pull requests ([ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md)).
+- The backend coverage command uploaded `[no statements]` in every run until `-coverpkg` was added ([ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md)).
+- `Test Summary` always passed, whatever its dependencies did, until it was made to read their results ([ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md)).
+- The actions' runtime was bumped and `node-version` was left at 18, out of support since 2025-04-30; the jobs now run on Node.js 24 ([ADR-004](docs/decisions/ADR-004-ci-pipeline-design.md)).
 - A lockfile out of sync broke `npm ci` in October 2025 ([ADR-005](docs/decisions/ADR-005-package-lock-incident.md)).
 
 ## Decisions
